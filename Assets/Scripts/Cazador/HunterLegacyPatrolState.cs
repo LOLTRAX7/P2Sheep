@@ -1,25 +1,28 @@
 using UnityEngine;
 
-public class HunterPatrolState : State<HunterAgent.HunterState>
+// Compatibilidad con el Hunter del Parcial 1.
+//
+// La escena Lvl1 conserva su Hunter con una lista de waypoints, pero no tiene las zonas ni el grafo
+// del Parcial 2. Cuando HunterAgent detecta esa situación, usa este estado (con el ID Search) para
+// seguir patrullando como antes, sin tocar la FSM del Parcial 2.
+public class HunterLegacyPatrolState : State<HunterAgent.HunterState>
 {
     private readonly HunterAgent _hunter;
 
     private int _currentIndex;
     private int _direction = 1;
     private float _spawnTimer;
-
     private bool _isPlacingInterestPoint;
     private float _placeTimer;
 
-    public HunterPatrolState(HunterAgent hunter)
+    public HunterLegacyPatrolState(HunterAgent hunter)
     {
         _hunter = hunter;
     }
 
     public override void Enter()
     {
-        Debug.Log("[Cazador] Entra a Patrol.");
-        _hunter.SetFeedback(HunterAgent.HunterState.Patrol);
+        _hunter.SetFeedback(HunterAgent.HunterState.Search, null, "Patrullando (modo Parcial 1)");
     }
 
     public override void Update()
@@ -48,37 +51,34 @@ public class HunterPatrolState : State<HunterAgent.HunterState>
 
     public override void Exit()
     {
-        Debug.Log("[Cazador] Sale de Patrol.");
         _hunter.StopMoving();
         _isPlacingInterestPoint = false;
     }
 
     private void PatrolWaypoints()
     {
-        var waypoints = _hunter.Waypoints;
+        var waypoints = _hunter.LegacyWaypoints;
 
         if (waypoints == null || waypoints.Count == 0)
+        {
+            _hunter.StopMoving();
             return;
+        }
 
-        if (_currentIndex >= waypoints.Count)
-            _currentIndex = 0;
+        if (_currentIndex >= waypoints.Count) _currentIndex = 0;
 
         Transform currentWaypoint = waypoints[_currentIndex];
 
         if (currentWaypoint == null)
+        {
+            AdvanceWaypoint(waypoints.Count);
             return;
+        }
 
         _hunter.MoveTowards(currentWaypoint.position);
 
-        float dist = Vector3.Distance(
-            _hunter.transform.position,
-            currentWaypoint.position
-        );
-
-        if (dist <= _hunter.WaypointArrivalDistance)
-        {
+        if (_hunter.HasReached(currentWaypoint.position, _hunter.WaypointArrivalDistance))
             AdvanceWaypoint(waypoints.Count);
-        }
     }
 
     private void AdvanceWaypoint(int waypointCount)
@@ -105,24 +105,15 @@ public class HunterPatrolState : State<HunterAgent.HunterState>
     {
         _spawnTimer += Time.deltaTime;
 
-        if (_spawnTimer < _hunter.PoiSpawnInterval)
-            return;
-
-        if (!_hunter.HasRoomForInterestPoint())
-            return;
+        if (_spawnTimer < _hunter.InterestPointInterval) return;
+        if (!_hunter.HasRoomForInterestPoint()) return;
 
         _spawnTimer = 0f;
         _isPlacingInterestPoint = true;
         _placeTimer = 0f;
 
         _hunter.StopMoving();
-        _hunter.SetFeedback(
-            HunterAgent.HunterState.Patrol,
-            null,
-            "Colocando objeto de interés"
-        );
-
-        Debug.Log("[Cazador] Se detiene a colocar un objeto de interés.");
+        _hunter.SetFeedback(HunterAgent.HunterState.Search, null, "Colocando objeto de interés");
     }
 
     private void UpdatePlacingInterestPoint()
@@ -130,11 +121,10 @@ public class HunterPatrolState : State<HunterAgent.HunterState>
         _hunter.StopMoving();
         _placeTimer += Time.deltaTime;
 
-        if (_placeTimer >= _hunter.InterestPointPlaceDuration)
-        {
-            _hunter.SpawnInterestPointAtCurrentPosition();
-            _isPlacingInterestPoint = false;
-            _hunter.SetFeedback(HunterAgent.HunterState.Patrol);
-        }
+        if (_placeTimer < _hunter.InterestPointPlaceDuration) return;
+
+        _hunter.SpawnInterestPointAtCurrentPosition();
+        _isPlacingInterestPoint = false;
+        _hunter.SetFeedback(HunterAgent.HunterState.Search, null, "Patrullando (modo Parcial 1)");
     }
 }

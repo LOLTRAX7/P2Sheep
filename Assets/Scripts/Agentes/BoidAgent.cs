@@ -40,16 +40,22 @@ public class BoidAgent : Agent
     [SerializeField] private Color harvestColor = new Color(0.3f, 0.6f, 1f);
     [SerializeField] private Color eliminatedColor = Color.gray;
 
-    public static readonly List<BoidAgent> All = new List<BoidAgent>();
+    // Parcial 2: ya no hay una lista static con todos los Boids. Cada Boid percibe lo que tiene cerca con
+    // Physics.OverlapSphere (Clase 7), así que no conoce a todos los elementos de la escena.
+    private static readonly Collider[] QueryBuffer = new Collider[128];
 
-    private float _currentHealth;
+    private Health _health;
+    private ColorFeedback _colorFeedback;
+    private readonly List<BoidAgent> _neighbors = new List<BoidAgent>();
     private InterestPoint _targetPoi;
     private HunterAgent _threat;
     private float _harvestTimer;
     private Collider _collider;
-    private Color _originalColor;
 
     public bool IsEliminated { get; private set; }
+
+    // Vida actual entre 0 y 1 (el Cazador la usa para atacar al Boid más herido).
+    public float HealthNormalized => _health != null ? _health.Normalized : 1f;
 
     // Distingue "murió y espera a que el cazador lo recolecte" de "ya fue
     // recolectado y está en cuenta regresiva para reaparecer". Ver OnGathered().
@@ -60,20 +66,46 @@ public class BoidAgent : Agent
         // Evita que un Rigidbody sin configurar pelee contra el movimiento manual.
         DisablePhysicsInterference();
 
-        _currentHealth = maxHealth;
+        // Los demás agentes lo perciben con OverlapSphere: necesita un collider.
         _collider = GetComponent<Collider>();
-        _velocity = RandomDirection() * maxSpeed;
 
-        if (feedbackRenderer != null) _originalColor = feedbackRenderer.material.color;
+        if (_collider == null)
+        {
+            SphereCollider sphere = gameObject.AddComponent<SphereCollider>();
+            sphere.isTrigger = true;
+            sphere.radius = 0.5f;
+            _collider = sphere;
+        }
+
+        // La vida y el color están en componentes aparte (Health y ColorFeedback).
+        _health = gameObject.GetOrAddComponent<Health>();
+        _health.Initialize(maxHealth);
+
+        if (feedbackRenderer == null) feedbackRenderer = GetComponentInChildren<Renderer>();
+
+        _colorFeedback = gameObject.GetOrAddComponent<ColorFeedback>();
+        _colorFeedback.SetRenderer(feedbackRenderer);
+
+        _velocity = RandomDirection() * maxSpeed;
     }
 
-    private void OnEnable() => All.Add(this);
-    private void OnDisable() => All.Remove(this);
+    private void OnEnable()
+    {
+        if (_health != null) _health.OnDied += HandleDied;
+    }
+
+    private void OnDisable()
+    {
+        if (_health != null) _health.OnDied -= HandleDied;
+    }
+
+    private Color OriginalColor => _colorFeedback != null ? _colorFeedback.BaseColor : Color.white;
 
     private void Update()
     {
         if (IsEliminated) return;
 
+        GatherNeighbors();
         DetectThreat();
         bool hasThreat = _threat != null;
 
@@ -107,7 +139,7 @@ public class BoidAgent : Agent
             }
             else
             {
-                SetFeedback(_originalColor);
+                SetFeedback(OriginalColor);
             }
         }
 
@@ -119,7 +151,11 @@ public class BoidAgent : Agent
             transform.forward = _velocity.normalized;
 
         if (Bounds.Instance != null)
-            transform.position = Bounds.Instance.OutOfBounds(transform.position);
+        {
+            Vector3 position = transform.position;
+            Bounds.Instance.Constrain(ref position, ref _velocity);
+            transform.position = position;
+        }
     }
 
     // Percepción 
@@ -133,14 +169,37 @@ public class BoidAgent : Agent
         _threat = null;
         float nearestDist = effectiveRadius;
 
-        foreach (var hunter in HunterAgent.All)
+        // Parcial 2: percibe sólo lo que está dentro de su radio de visión (OverlapSphere), no una lista de todos los cazadores.
+        int count = Physics.OverlapSphereNonAlloc(transform.position, effectiveRadius, QueryBuffer);
+
+        for (int i = 0; i < count; i++)
         {
+            HunterAgent hunter = QueryBuffer[i].GetComponentInParent<HunterAgent>();
+            if (hunter == null) continue;
+
             float dist = Vector3.Distance(transform.position, hunter.transform.position);
             if (dist <= nearestDist)
             {
                 _threat = hunter;
                 nearestDist = dist;
             }
+        }
+    }
+
+    // Parcial 2: junta los Boids que tiene cerca (dentro de Neighbor Radius) con OverlapSphere.
+    // Separation, Alignment y Cohesion trabajan sobre esta lista en lugar de recorrer todos los Boids de la escena.
+    private void GatherNeighbors()
+    {
+        _neighbors.Clear();
+
+        int count = Physics.OverlapSphereNonAlloc(transform.position, neighborRadius, QueryBuffer);
+
+        for (int i = 0; i < count; i++)
+        {
+            BoidAgent other = QueryBuffer[i].GetComponentInParent<BoidAgent>();
+
+            if (other != null && other != this && !_neighbors.Contains(other))
+                _neighbors.Add(other);
         }
     }
 
@@ -159,8 +218,16 @@ public class BoidAgent : Agent
         InterestPoint nearest = null;
         float nearestDist = poiVisionRadius;
 
-        foreach (var poi in InterestPoint.ActivePoints)
+        int count = Physics.OverlapSphereNonAlloc(transform.position, poiVisionRadius, QueryBuffer);
+
+        for (int i = 0; i < count; i++)
         {
+            InterestPoint poi = QueryBuffer[i].GetComponentInParent<InterestPoint>();
+            if (poi == null) continue;
+
+            // Parcial 2: los Boids viven en el lobby; ignoran objetos de interés que quedaron fuera de su área.
+            if (Bounds.Instance != null && !Bounds.Instance.Contains(poi.transform.position)) continue;
+
             float dist = Vector3.Distance(transform.position, poi.transform.position);
             if (dist <= nearestDist)
             {
@@ -199,19 +266,19 @@ public class BoidAgent : Agent
     {
         if (IsEliminated) return;
 
-        _currentHealth -= amount;
+        Debug.Log($"[{name}] Recibe {amount} de daño. Vida: {Mathf.Max(_health.Current - amount, 0f)}/{maxHealth}.");
 
-        Debug.Log($"[{name}] Recibe {amount} de daño. Vida: {Mathf.Max(_currentHealth, 0f)}/{maxHealth}.");
+        // La vida la maneja el componente Health; si llega a 0 dispara OnDied y se ejecuta HandleDied().
+        _health.TakeDamage(amount);
+    }
 
-        if (_currentHealth <= 0f)
-        {
-            _currentHealth = 0f;
-            IsEliminated = true;
-            IsPendingGather = true; // recién murió: todavía no lo recolectaron
-            _velocity = Vector3.zero;
-            SetFeedback(eliminatedColor);
-            Debug.Log($"[{name}] Eliminado. Queda inactivo hasta que el cazador lo recolecte.");
-        }
+    private void HandleDied()
+    {
+        IsEliminated = true;
+        IsPendingGather = true; // recién murió: todavía no lo recolectaron
+        _velocity = Vector3.zero;
+        SetFeedback(eliminatedColor);
+        Debug.Log($"[{name}] Eliminado. Queda inactivo hasta que el cazador lo recolecte.");
     }
 
     // Llamado por HunterGatherState al completar la recolección
@@ -232,7 +299,7 @@ public class BoidAgent : Agent
         if (Bounds.Instance != null)
             transform.position = Bounds.Instance.GetRandomPointInside();
 
-        _currentHealth = maxHealth;
+        _health.ResetHealth();
         IsEliminated = false;
         IsPendingGather = false;
         _targetPoi = null;
@@ -241,7 +308,7 @@ public class BoidAgent : Agent
         _velocity = RandomDirection() * maxSpeed;
 
         SetVisible(true);
-        SetFeedback(_originalColor);
+        SetFeedback(OriginalColor);
         Debug.Log($"[{name}] Reapareció en {transform.position}.");
     }
 
@@ -259,7 +326,7 @@ public class BoidAgent : Agent
 
     private void SetFeedback(Color color)
     {
-        if (feedbackRenderer != null) feedbackRenderer.material.color = color;
+        if (_colorFeedback != null) _colorFeedback.SetColor(color);
     }
 
 
@@ -315,10 +382,8 @@ public class BoidAgent : Agent
         Vector3 sum = Vector3.zero;
         int count = 0;
 
-        foreach (var other in All)
+        foreach (var other in _neighbors)
         {
-            if (other == this) continue;
-
             float dist = Vector3.Distance(other.transform.position, transform.position);
             if (dist > 0.0001f && dist <= separationRadius)
             {
@@ -338,9 +403,9 @@ public class BoidAgent : Agent
         Vector3 sum = Vector3.zero;
         int count = 0;
 
-        foreach (var other in All)
+        foreach (var other in _neighbors)
         {
-            if (other == this || other.IsEliminated) continue;
+            if (other.IsEliminated) continue;
 
             float dist = Vector3.Distance(other.transform.position, transform.position);
             if (dist <= neighborRadius)
@@ -361,9 +426,9 @@ public class BoidAgent : Agent
         Vector3 centroid = Vector3.zero;
         int count = 0;
 
-        foreach (var other in All)
+        foreach (var other in _neighbors)
         {
-            if (other == this || other.IsEliminated) continue;
+            if (other.IsEliminated) continue;
 
             float dist = Vector3.Distance(other.transform.position, transform.position);
             if (dist <= neighborRadius)
@@ -389,15 +454,16 @@ public class BoidAgent : Agent
         }
     }
 
-    private void OnDrawGizmosSelected()
+    private void OnDrawGizmos()
     {
-        Gizmos.color = Color.red;
+        // Siempre visibles (consigna del P2): radios de Separation, Neighbor y visión del Cazador.
+        Gizmos.color = new Color(1f, 0.25f, 0.25f, 0.8f);
         Gizmos.DrawWireSphere(transform.position, separationRadius);
 
-        Gizmos.color = Color.cyan;
+        Gizmos.color = new Color(0.2f, 0.9f, 1f, 0.6f);
         Gizmos.DrawWireSphere(transform.position, neighborRadius);
 
-        Gizmos.color = new Color(1f, 0.55f, 0f);
+        Gizmos.color = new Color(1f, 0.55f, 0f, 0.8f);
         Gizmos.DrawWireSphere(transform.position, hunterVisionRadius);
     }
 }

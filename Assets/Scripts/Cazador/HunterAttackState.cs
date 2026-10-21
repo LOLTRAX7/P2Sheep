@@ -1,12 +1,20 @@
 using UnityEngine;
 
+// Estado Attack.
+//
+// Sólo se entra si el TBA terminó y hay al menos un Boid vivo dentro de la percepción.
+// Dentro del estado:
+//   - si el objetivo está dentro de MeleeAttackRadius -> ataque cuerpo a cuerpo;
+//   - si está dentro de RangeAttackRadius -> ataque a distancia;
+//   - si no está en ningún rango -> lo persigue con Pursuit (predicción de la posición futura),
+//     usando A* cuando no hay línea de visión directa.
+//
+// Al atacar con éxito reinicia el TBA y vuelve a Search. Si el objetivo abandona el rango de visión,
+// vuelve a Search SIN reiniciar el TBA.
 public class HunterAttackState : State<HunterAgent.HunterState>
 {
     private readonly HunterAgent _hunter;
     private BoidAgent _target;
-    private float _timer;
-    private bool _preparing;
-
 
     public HunterAttackState(HunterAgent hunter)
     {
@@ -15,92 +23,74 @@ public class HunterAttackState : State<HunterAgent.HunterState>
 
     public override void Enter()
     {
-        _target = _hunter.FindNearestLiveBoid();
-        _timer = 0f;
-        _preparing = false;
+        _target = _hunter.FindBestLiveBoid();
 
-        Debug.Log($"[Cazador] Attack. Objetivo: {(_target != null ? _target.name : "ninguno")}");
-        _hunter.SetFeedback(HunterAgent.HunterState.Attack, _target, "Buscando rango de ataque");
+        if (_target == null)
+        {
+            _fsm.ChangeState(HunterAgent.HunterState.Search);
+            return;
+        }
+
+        _hunter.SetFeedback(HunterAgent.HunterState.Attack, _target, "Eligiendo objetivo");
+        FeedbackLog.Add("[Cazador] Attack: objetivo " + _target.name + ".", new Color(1f, 0.4f, 0.4f), false);
     }
 
     public override void Update()
     {
-        // Si no hay objetivo, vuelve a Patrol.
+        // Prioridad 1: un lobo percibido cancela el ataque.
+        if (_hunter.ShouldFlee)
+        {
+            _fsm.ChangeState(HunterAgent.HunterState.Flee);
+            return;
+        }
+
+        // Prioridad 2: Gather tiene más prioridad que Attack.
+        if (_hunter.FindNearestEliminatedBoid() != null)
+        {
+            _fsm.ChangeState(HunterAgent.HunterState.Gather);
+            return;
+        }
+
         if (_target == null || _target.IsEliminated)
         {
-            _fsm.ChangeState(HunterAgent.HunterState.Patrol);
+            _fsm.ChangeState(HunterAgent.HunterState.Search);
             return;
         }
 
-        float distance = Vector3.Distance(_hunter.transform.position, _target.transform.position);
+        float distance = _hunter.FlatDistanceTo(_target.transform.position);
+        bool inSight = distance <= _hunter.VisionRadius && _hunter.HasClearSightTo(_target.transform.position);
 
-        // Si el Boid se aleja demasiado, se cancela Attack.
-        if (distance > _hunter.PerceptionLossRadius)
+        // Si el objetivo abandona el rango de visión, vuelve a Search sin reiniciar el TBA.
+        if (!inSight)
         {
             _hunter.SetFeedback(HunterAgent.HunterState.Attack, _target, "Objetivo perdido");
-            _fsm.ChangeState(HunterAgent.HunterState.Patrol);
+            _fsm.ChangeState(HunterAgent.HunterState.Search);
             return;
         }
-
-        // Todavía no está en ningún rango de ataque: perseguir.
-        if (distance > _hunter.RangeAttackRadius)
-        {
-            _preparing = false;
-            _timer = 0f;
-            _hunter.MoveTowards(_target.transform.position);
-            _hunter.SetFeedback(HunterAgent.HunterState.Attack, _target, "Persiguiendo");
-            return;
-        }
-
-        // Ya está en rango: detenerse y preparar el ataque.
-        _hunter.StopMoving();
-
-        if (!_preparing)
-        {
-            _preparing = true;
-            _timer = 0f;
-        }
-
-        _timer += Time.deltaTime;
-
-        string tipo = distance <= _hunter.MeleeAttackRadius
-            ? "Preparando ataque cuerpo a cuerpo"
-            : "Preparando ataque a distancia";
-
-        _hunter.SetFeedback(
-            HunterAgent.HunterState.Attack,
-            _target,
-            $"{tipo} ({_timer:0.0}/{_hunter.AttackPreparationTime:0.0}s)"
-        );
-
-        if (_timer < _hunter.AttackPreparationTime)
-            return;
-
-        // Se vuelve a comprobar la distancia justo antes de atacar.
-        distance = Vector3.Distance(_hunter.transform.position, _target.transform.position);
 
         if (distance <= _hunter.MeleeAttackRadius)
         {
+            _hunter.StopMoving();
             _hunter.PerformMeleeAttack(_target);
-            _fsm.ChangeState(HunterAgent.HunterState.Patrol);
+            _fsm.ChangeState(HunterAgent.HunterState.Search);
+            return;
         }
-        else if (distance <= _hunter.RangeAttackRadius)
+
+        if (distance <= _hunter.RangeAttackRadius)
         {
+            _hunter.StopMoving();
             _hunter.PerformRangedAttack(_target);
-            _fsm.ChangeState(HunterAgent.HunterState.Patrol);
+            _fsm.ChangeState(HunterAgent.HunterState.Search);
+            return;
         }
-        else
-        {
-            // Se alejó mientras preparábamos el ataque
-            _preparing = false;
-            _timer = 0f;
-            _hunter.SetFeedback(HunterAgent.HunterState.Attack, _target, "Ataque cancelado");
-        }
+
+        // Fuera de rango: Pursuit con predicción. Si no hay línea de visión, el HunterAgent usa A*.
+        _hunter.PursueBoid(_target, _hunter.MoveSpeed);
+        _hunter.SetFeedback(HunterAgent.HunterState.Attack, _target, "Persiguiendo (Pursuit)");
     }
 
     public override void Exit()
     {
         _hunter.StopMoving();
-        Debug.Log("[Cazador] Sale de Attack.");
     }
 }

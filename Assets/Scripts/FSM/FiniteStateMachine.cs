@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,6 +8,10 @@ public class FiniteStateMachine<T>
 {
     private State<T> _currentState;
     private readonly Dictionary<T, State<T>> _allStates = new();
+
+    // Parcial 2: ID del estado activo y aviso de cada cambio (lo usan el feedback y los HUD de los lobos).
+    public T CurrentStateID { get; private set; }
+    public event Action<T> OnStateChanged = delegate { };
 
     public void AddState(T ID, State<T> state)
     {
@@ -33,6 +38,8 @@ public class FiniteStateMachine<T>
         // y finalmente entra al nuevo estado.
         _currentState?.Exit();
         _currentState = _allStates[ID];
+        CurrentStateID = ID;
+        OnStateChanged?.Invoke(ID);
         _currentState.Enter();
     }
 

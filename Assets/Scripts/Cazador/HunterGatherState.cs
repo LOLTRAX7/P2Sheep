@@ -1,4 +1,14 @@
 using UnityEngine;
+
+// Estado Gather.
+//
+// Se entra al detectar un Boid eliminado (pendiente de recolección) dentro de VisionRadius.
+// - Se dirige al Boid (A* si no hay línea de visión; Seek/Arrive en el tramo final directo).
+// - Ejecuta la recolección durante GatherDuration.
+// - Al terminar, el Boid desaparece y reaparece dentro del Coto, y el Cazador suma una recolección.
+//
+// Si el objetivo deja de estar disponible antes de completar la acción, se cancela sin sumar.
+// Si aparece un lobo, Flee tiene prioridad y la recolección se cancela.
 public class HunterGatherState : State<HunterAgent.HunterState>
 {
     private readonly HunterAgent _hunter;
@@ -14,45 +24,64 @@ public class HunterGatherState : State<HunterAgent.HunterState>
     {
         _target = _hunter.FindNearestEliminatedBoid();
         _gatherTimer = 0f;
-        Debug.Log($"[Cazador] Entra a Gather. Objetivo: {(_target != null ? _target.name : "ninguno")}");
-        _hunter.SetFeedback(HunterAgent.HunterState.Gather, _target);
+
+        if (_target == null)
+        {
+            _fsm.ChangeState(HunterAgent.HunterState.Search);
+            return;
+        }
+
+        _hunter.SetFeedback(HunterAgent.HunterState.Gather, _target, "Yendo a recolectar");
+        FeedbackLog.Add("[Cazador] Gather: va a recolectar a " + _target.name + ".", new Color(1f, 0.9f, 0.3f), false);
     }
 
     public override void Update()
     {
-        // El objetivo dejó de estar disponible (ya no existe, revivió, o ya
-        // fue recolectado): se abandona la recolección y se vuelve a Patrol.
-        if (_target == null || !_target.IsEliminated || !_target.IsPendingGather)
+        if (_hunter.ShouldFlee)
         {
-            Debug.Log("[Cazador] El objetivo de recolección ya no está disponible.");
-            _fsm.ChangeState(HunterAgent.HunterState.Patrol);
+            _fsm.ChangeState(HunterAgent.HunterState.Flee);
             return;
         }
 
-        float distance = Vector3.Distance(_hunter.transform.position, _target.transform.position);
+        // El Boid ya no está disponible (lo recolectó otro, revivió, etc.): se abandona sin sumar.
+        if (_target == null || !_target.IsEliminated || !_target.IsPendingGather)
+        {
+            FeedbackLog.Add("[Cazador] Gather cancelado: el objetivo ya no está disponible.", Color.yellow, false);
+            _fsm.ChangeState(HunterAgent.HunterState.Search);
+            return;
+        }
+
+        float distance = _hunter.FlatDistanceTo(_target.transform.position);
 
         if (distance > _hunter.GatherInteractionRadius)
         {
-            _hunter.MoveTowards(_target.transform.position);
+            // Tramo final: si hay línea de visión directa, Seek/Arrive; si no, A* sobre el grafo.
+            if (_hunter.HasClearSightTo(_target.transform.position))
+                _hunter.MoveDirect(_target.transform.position, _hunter.MoveSpeed);
+            else
+                _hunter.MoveTo(_target.transform.position, _hunter.MoveSpeed);
+
             _hunter.SetFeedback(HunterAgent.HunterState.Gather, _target, "Yendo a recolectar");
             return;
         }
 
-        // Ya está en posición: ejecuta la acción de recolección durante el tiempo requerido.
         _hunter.StopMoving();
         _gatherTimer += Time.deltaTime;
-        _hunter.SetFeedback(HunterAgent.HunterState.Gather, _target, "Recolectando");
+        _hunter.SetFeedback(HunterAgent.HunterState.Gather, _target, "Recolectando (" + _gatherTimer.ToString("0.0") + "/" + _hunter.GatherDuration.ToString("0.0") + " s)");
 
-        if (_gatherTimer >= _hunter.GatherDuration)
-        {
-            Debug.Log("[Cazador] Recolección completa.");
-            _target.OnGathered(_hunter.BoidRespawnDelay);
-            _fsm.ChangeState(HunterAgent.HunterState.Patrol);
-        }
+        if (_gatherTimer < _hunter.GatherDuration) return;
+
+        _target.OnGathered(_hunter.BoidRespawnDelay);
+        _hunter.AddGather();
+
+        if (_hunter.Gathers >= _hunter.RequiredGathers && _hunter.ExitZone != null)
+            _fsm.ChangeState(HunterAgent.HunterState.Exit);
+        else
+            _fsm.ChangeState(HunterAgent.HunterState.Search);
     }
 
     public override void Exit()
     {
-        Debug.Log("[Cazador] Sale de Gather.");
+        _hunter.StopMoving();
     }
 }

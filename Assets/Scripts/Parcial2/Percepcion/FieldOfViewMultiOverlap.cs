@@ -41,7 +41,7 @@ public class FieldOfViewMultiOverlap : FieldOfViewSensor
 
             if (hit == null || hit.transform.IsChildOf(transform)) continue;
 
-            Transform candidate = hit.transform.root;
+            Transform candidate = hit.transform;
             if (!IsAllowed(candidate) || _visibleTargets.Contains(candidate)) continue;
 
             _target = candidate;

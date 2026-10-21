@@ -12,6 +12,7 @@ using UnityEngine.Serialization;
 //
 // Navegación: A* sobre el grafo compartido (GraphNavigator). Sólo el tramo final hacia un Boid que está en
 // línea de visión directa usa steering (Pursuit / Seek / Arrive), como pide la consigna.
+[RequireComponent(typeof(Collider))]
 public class HunterAgent : Agent
 {
     public enum HunterState { Search, Attack, Gather, Flee, Exit, Dead }

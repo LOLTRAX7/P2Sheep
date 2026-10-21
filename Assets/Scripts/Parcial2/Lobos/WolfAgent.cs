@@ -13,7 +13,10 @@ using UnityEngine;
 //
 // La conducta se organiza con la FSM del Parcial 1: WolfPatrolState, WolfChaseState,
 // WolfGoToPositionState y WolfSearchState. Cada estado decide sus propias transiciones.
-[RequireComponent(typeof(FieldOfViewOverlap), typeof(GraphNavigator), typeof(ColorFeedback))]
+[RequireComponent(typeof(FieldOfViewOverlap))]
+[RequireComponent(typeof(GraphNavigator))]
+[RequireComponent(typeof(ColorFeedback))]
+[RequireComponent(typeof(Collider))]
 public class WolfAgent : Agent
 {
     public enum WolfState { Patrol, Chase, GoToPosition, Search }

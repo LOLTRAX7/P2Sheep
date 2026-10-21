@@ -27,6 +27,13 @@ public class LevelBuilder : MonoBehaviour
     [SerializeField] private bool _createHud = true;
     [SerializeField] private bool _runGraphSelfTest = true;
 
+    [Header("Prefabs (opcional)")]
+    [Tooltip("Si se asignan, LevelBuilder los instancia en lugar de crear primitivas por código. Si no, se usa el comportamiento actual.")]
+    [SerializeField] private GameObject _hunterPrefab;
+    [SerializeField] private GameObject _wolfPrefab;
+    [SerializeField] private GameObject _boidPrefab;
+    [SerializeField] private GameObject _interestPointPrefab;
+
     private const float HunterHeight = 0.95f;
     private const float WolfHeight = 0.85f;
     private const float BoidHeight = 0.4f;
@@ -284,11 +291,23 @@ public class LevelBuilder : MonoBehaviour
     {
         Vector3 start = _nodesById[LevelData.HunterStartNode].transform.position.ToXZ(0f) + Vector3.up * HunterHeight;
 
-        GameObject hunterObject = CreateAgentBody("Cazador", PrimitiveType.Capsule, start, new Color(0.9f, 0.9f, 0.95f), HunterHeight);
-        Renderer renderer = hunterObject.GetComponentInChildren<Renderer>();
-        if (renderer != null) renderer.sharedMaterial = MaterialForLit(new Color(0.9f, 0.9f, 0.95f));
+        GameObject hunterObject;
 
-        _hunter = hunterObject.AddComponent<HunterAgent>();
+        if (_hunterPrefab != null)
+        {
+            hunterObject = Instantiate(_hunterPrefab, start, Quaternion.identity);
+            hunterObject.name = "Cazador";
+        }
+        else
+        {
+            hunterObject = CreateAgentBody("Cazador", PrimitiveType.Capsule, start, new Color(0.9f, 0.9f, 0.95f), HunterHeight);
+            Renderer renderer = hunterObject.GetComponentInChildren<Renderer>();
+            if (renderer != null) renderer.sharedMaterial = MaterialForLit(new Color(0.9f, 0.9f, 0.95f));
+        }
+
+        _hunter = hunterObject.GetComponent<HunterAgent>();
+        if (_hunter == null) _hunter = hunterObject.AddComponent<HunterAgent>();
+
         _hunter.Configure(
             start,
             _initialZone,
@@ -308,20 +327,31 @@ public class LevelBuilder : MonoBehaviour
             Vector3 position = _bounds.GetRandomPointInside();
             position.y = BoidHeight;
 
-            GameObject boidObject = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            boidObject.name = "Boid_" + (i + 1);
-            boidObject.transform.SetParent(boidsRoot, false);
-            boidObject.transform.position = position;
-            boidObject.transform.localScale = Vector3.one * 0.7f;
+            GameObject boidObject;
 
-            Renderer renderer = boidObject.GetComponent<Renderer>();
-            Color color = Color.Lerp(new Color(0.55f, 0.75f, 1f), new Color(0.9f, 0.95f, 1f), i / (float)Mathf.Max(1, _boidCount - 1));
-            renderer.sharedMaterial = MaterialForLit(color);
+            if (_boidPrefab != null)
+            {
+                boidObject = Instantiate(_boidPrefab, position, Quaternion.identity);
+                boidObject.name = "Boid_" + (i + 1);
+                boidObject.transform.SetParent(boidsRoot, false);
+            }
+            else
+            {
+                boidObject = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                boidObject.name = "Boid_" + (i + 1);
+                boidObject.transform.SetParent(boidsRoot, false);
+                boidObject.transform.position = position;
+                boidObject.transform.localScale = Vector3.one * 0.7f;
 
-            Collider collider = boidObject.GetComponent<Collider>();
-            if (collider != null) collider.isTrigger = true;
+                Renderer renderer = boidObject.GetComponent<Renderer>();
+                Color color = Color.Lerp(new Color(0.55f, 0.75f, 1f), new Color(0.9f, 0.95f, 1f), i / (float)Mathf.Max(1, _boidCount - 1));
+                renderer.sharedMaterial = MaterialForLit(color);
 
-            boidObject.AddComponent<BoidAgent>();
+                Collider collider = boidObject.GetComponent<Collider>();
+                if (collider != null) collider.isTrigger = true;
+
+                boidObject.AddComponent<BoidAgent>();
+            }
         }
     }
 
@@ -344,12 +374,27 @@ public class LevelBuilder : MonoBehaviour
 
             Vector3 start = routeNodes[0].transform.position.ToXZ(0f) + Vector3.up * WolfHeight;
 
-            GameObject wolfObject = CreateAgentBody(route.Owner, PrimitiveType.Capsule, start, new Color(0.65f, 0.65f, 0.7f), WolfHeight);
-            Renderer renderer = wolfObject.GetComponentInChildren<Renderer>();
-            if (renderer != null) renderer.sharedMaterial = MaterialForLit(new Color(0.65f, 0.65f, 0.7f));
+            GameObject wolfObject;
+            WolfAgent wolf;
 
-            wolfObject.transform.localScale = new Vector3(0.7f, 0.85f, 1.1f);
-            WolfAgent wolf = wolfObject.AddComponent<WolfAgent>();
+            if (_wolfPrefab != null)
+            {
+                wolfObject = Instantiate(_wolfPrefab, start, Quaternion.identity);
+                wolfObject.name = route.Owner;
+                wolf = wolfObject.GetComponent<WolfAgent>();
+                if (wolf == null) wolf = wolfObject.AddComponent<WolfAgent>();
+            }
+            else
+            {
+                wolfObject = CreateAgentBody(route.Owner, PrimitiveType.Capsule, start, new Color(0.65f, 0.65f, 0.7f), WolfHeight);
+                Renderer renderer = wolfObject.GetComponentInChildren<Renderer>();
+                if (renderer != null) renderer.sharedMaterial = MaterialForLit(new Color(0.65f, 0.65f, 0.7f));
+
+                wolfObject.transform.localScale = new Vector3(0.7f, 0.85f, 1.1f);
+                wolf = wolfObject.AddComponent<WolfAgent>();
+            }
+
+            wolfObject.transform.SetParent(_root.transform, false);
             wolf.Configure(_graph, routeNodes, route.PingPong);
         }
     }

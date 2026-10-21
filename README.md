@@ -14,6 +14,10 @@
 
 La escena del Parcial 1 (`Assets/Scenes/Lvl1.unity`) se conserva y sigue siendo jugable.
 
+## Prefabs y herramientas de Editor
+
+En el menú **Parcial 2 / Crear prefabs básicos** se generan los prefabs de Hunter, Wolf, Boid (Prey) e InterestPoint en `Assets/Prefabs/`. Si se asignan en el Inspector de `LevelBuilder` (campos opcionales "Prefabs"), el constructor los usará en lugar de crear primitivas por código; si no se asignan, se mantiene el comportamiento actual de generación por código.
+
 ## Escenario (Ejemplo 1 — Variante A: anillo)
 
 El mapa mide 46 × 34 celdas de 2 × 2 metros y se genera desde `LevelData`:

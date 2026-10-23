@@ -2,12 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Búsqueda: el lobo llegó a la zona donde se vio al Cazador y no lo encuentra.
-// Mira alrededor (gira en el lugar) y recorre nodos cercanos a esa posición durante SearchDuration segundos.
+// Mira alrededor (gira en el lugar) y recorre nodos cercanos a esa posición.
+// Renueva los puntos cada SearchDuration; no olvida al objetivo por un temporizador.
 //
 // Transiciones:
 //   -> Chase        si vuelve a percibir al Cazador
 //   -> GoToPosition si llega una posición conocida nueva
-//   -> Patrol       si se acaba el tiempo de búsqueda, si el Cazador entra a una Zona segura o si muere
+//   -> Patrol       si el Cazador entra a una Zona segura o si muere
 public class WolfSearchState : State<WolfAgent.WolfState>
 {
     private readonly WolfAgent _wolf;
@@ -61,8 +62,9 @@ public class WolfSearchState : State<WolfAgent.WolfState>
 
         if (_timer <= 0f)
         {
-            _fsm.ChangeState(WolfAgent.WolfState.Patrol);
-            return;
+            _timer = _wolf.SearchDurationForState;
+            ChooseSearchPoints();
+            _index = _candidates.Count > 0 ? _index % _candidates.Count : 0;
         }
 
         if (_candidates.Count == 0)

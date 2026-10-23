@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Adaptación de PriorityQueue<T> del profesor (heap binario, Clase 11 / Pathfinding + LoS + FoV).
+
 public class PriorityQueue<T>
 {
     private struct Node

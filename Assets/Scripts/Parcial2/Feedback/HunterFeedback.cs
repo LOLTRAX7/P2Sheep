@@ -34,7 +34,7 @@ public class HunterFeedback : MonoBehaviour
     {
         HunterAgent hunter = Hunter;
 
-        if (hunter == null)
+        if (hunter == null || !hunter.IsPresent)
         {
             _wolfLines.enabled = false;
             _safeZoneLine.enabled = false;
@@ -116,7 +116,7 @@ public class HunterFeedback : MonoBehaviour
 
         string state = StateLabel(hunter.CurrentState);
         string gathers = hunter.Gathers + " / " + hunter.RequiredGathers;
-        string tba = hunter.IsAttackReady ? "LISTO" : (hunter.TBA).ToString("0.0") + " s";
+        string tba = hunter.IsAttackReady ? "LISTO" : hunter.AttackCooldownRemaining.ToString("0.0") + " s";
         string safeZone = hunter.ChosenSafeZone != null ? hunter.ChosenSafeZone.name : "-";
         string wolves = hunter.VisibleWolfCount.ToString();
         string target = string.IsNullOrEmpty(hunter.DebugTarget) ? "-" : hunter.DebugTarget;

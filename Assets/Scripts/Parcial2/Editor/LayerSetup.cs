@@ -6,7 +6,7 @@ using UnityEngine;
 [InitializeOnLoad]
 public static class LayerSetup
 {
-    private static readonly string[] Layers = { "Wall", "Hunter", "Wolf" };
+    private static readonly string[] Layers = { "Wall", "Hunter", "Wolf", "Boid", "Interest" };
 
     static LayerSetup()
     {

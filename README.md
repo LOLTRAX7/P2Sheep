@@ -16,7 +16,7 @@ La escena del Parcial 1 (`Assets/Scenes/Lvl1.unity`) se conserva y sigue siendo 
 
 ## Prefabs y herramientas de Editor
 
-En el menú **Parcial 2 / Crear prefabs básicos** se generan los prefabs de Hunter, Wolf, Boid (Prey) e InterestPoint en `Assets/Prefabs/`. Si se asignan en el Inspector de `LevelBuilder` (campos opcionales "Prefabs"), el constructor los usará en lugar de crear primitivas por código; si no se asignan, se mantiene el comportamiento actual de generación por código.
+En el menú **Parcial 2 / Crear prefabs básicos** se generan los prefabs de Hunter, Wolf, Boid (Prey) e InterestPoint en `Assets/Prefabs/Parcial2/`, separados de los prefabs originales del P1. Si se asignan en el Inspector de `LevelBuilder` (campos opcionales "Prefabs"), el constructor los usará en lugar de crear primitivas por código. No hace falta generar prefabs para ejecutar la escena de entrega.
 
 ## Escenario (Ejemplo 1 — Variante A: anillo)
 
@@ -27,6 +27,8 @@ El mapa mide 46 × 34 celdas de 2 × 2 metros y se genera desde `LevelData`:
 - **Zona segura A** y **Zona segura B**: callejones sin salida. Los lobos no pueden entrar ni usar sus nodos.
 - **Salida** al este: el Cazador debe llegar después de recolectar 3 Boids.
 - Pasillos, habitaciones de patrulla y obstáculos alrededor del anillo.
+
+![Mapa anular durante una prueba de la simulación](Documentacion/Mapa.png)
 
 ## Agentes
 
@@ -54,9 +56,9 @@ Percepción: radio máximo + obstáculos que cortan la línea de visión, sin á
 Cada lobo tiene una **FSM** con `Patrol`, `Chase`, `GoToPosition` y `Search`.
 
 - Patrullan por waypoints; cuando no hay línea de visión usan A* sobre el mismo grafo, excluyendo los nodos de Zonas seguras.
-- FoV con distancia, ángulo y línea de visión (paredes).
+- FoV con distancia (18 m por defecto), ángulo y línea de visión (paredes).
 - Al detectar al Cazador aúllan: sonido, anillo visual, aviso a los demás lobos y última posición conocida.
-- Los que reciben la alerta van a la última posición y buscan.
+- Los que reciben la alerta van a la última posición y buscan sin actualizarla a través de paredes. Continúan buscando hasta recibir información nueva o abandonar el objetivo por refugio/muerte.
 - Si el Cazador entra en una Zona segura, descartan el objetivo y vuelven a patrullar.
 - Si lo alcanzan dentro de `CaptureRadius`, el Cazador pasa a `Dead`.
 - Velocidades: patrulla 2.6, alerta 3.4, persecución 4.2; siempre menores que el Cazador (5.2 / 6.2).
@@ -72,6 +74,8 @@ Se conserva el flocking del Parcial 1 (separación, alineación, cohesión y eva
 - **A\* propio** con `PriorityQueue`, costo real por distancia y heurística euclidiana fija.
 - `closed` es local a cada búsqueda: no se guarda `visited` dentro de los nodos y no hay enum de heurísticas.
 - Los lobos llaman a `AStar(..., avoidSafeZones: true)` y usan `GraphNavigator.Configure(true)`; el Cazador puede usar todos los nodos.
+- Los viajes del Cazador exigen A* incluso con LoS; los lobos aprovechan el desplazamiento directo cuando es transitable. Los nodos se recorren con steering (`desired - velocity` y fuerza limitada), siguiendo Clase 3.
+- Sin camino válido, el agente se detiene. Los lobos tampoco pueden cruzar refugios mediante aristas, atajos o inercia.
 - No se usa NavMesh, grilla de celdas ni rutas fijas para navegar.
 
 ## Feedback visual y sonoro
@@ -93,11 +97,13 @@ Assets/
     Cazador/                HunterAgent + estados de la FSM
     Parcial2/
       Comun/                Zones, Health, GameLayers
-      Escenario/            LevelData, LevelBuilder, GraphSelfTest
-      Pathfinding/          Graph, A*, GraphNavigator, Node
+      Escenario/            LevelData, LevelBuilder
+      Pathfinding/          Graph, A*, GraphNavigator, Node, GraphSelfTest
       Lobos/                WolfAgent + estados
       Feedback/             HUD, gizmos, líneas y registro de eventos
-  Tests/PlayMode/           Pruebas automáticas de escena, grafo y captura/respawn
+  Tests/PlayMode/           Pruebas de requisitos, regresión y simulación completa
+Documentacion/             Revisión, base del profesor y resultados de pruebas
+Revision/                  Respaldo y archivos locales; excluida de GitHub
 ```
 
 ## Pruebas automáticas
@@ -109,7 +115,13 @@ Las pruebas PlayMode comprueban:
 - la captura del Cazador, el estado `Dead`, el respawn y el reinicio de recolecciones;
 - que `Lvl1` siga cargando y generando Boids, con su Hunter en modo de compatibilidad.
 
-La suite PlayMode finalizó correctamente con **3/3 pruebas aprobadas**.
+La suite ampliada finalizó correctamente con **18/18 pruebas aprobadas** en Unity 6000.3.17f1, sin omisiones. Verifica además TBA, pérdida de objetivo, cancelación de Gather, espera en refugio, comunicación sin seguimiento omnisciente, objetos de interés, navegación sin ruta y ciclos autónomos.
+
+Se contrastaron **4.234 caminos de A*** con Dijkstra, con y sin refugios. Una simulación integrada de **360 segundos simulados** verificó persecuciones y huidas, recolecciones y entrada a Exit, sin lobos dentro de refugios ni paredes. Otra prueba verifica el ciclo completo de salida y reaparición sin lobos.
+
+Los resultados están en [Documentacion/Pruebas.xml](Documentacion/Pruebas.xml). Las correcciones y la correspondencia con los scripts de clase se explican en [Revision.md](Documentacion/Revision.md) y [BaseDelProfesor.md](Documentacion/BaseDelProfesor.md).
+
+La compilación de Windows también finalizó correctamente, con **0 errores y 0 advertencias**. Resultado en [Documentacion/Compilacion.txt](Documentacion/Compilacion.txt).
 
 Comando de ejemplo:
 
@@ -122,3 +134,11 @@ Unity.exe -batchmode -nographics -projectPath "C:\Users\valen\P2" `
 ## Controles
 
 La simulación es automática; no requiere input del jugador. Se puede pausar con el botón **Pause** del Editor y observar los Gizmos en la pestaña **Scene**.
+
+El menú **Parcial 2 / Verificar compilación Windows** genera una compilación de comprobación en `Revision/Build/`. El autodiagnóstico exhaustivo de A* está disponible en el componente `GraphSelfTest`, pero no se ejecuta en cada inicio de la simulación.
+
+## Limpieza y respaldo
+
+Se conservaron `Lvl1`, sus prefabs, materiales y referencias. El perfil gráfico `SampleSceneProfile` sigue presente porque lo usan el P1 y los renderizadores. Se apartaron el tutorial de Unity y la escena vacía de ejemplo y se quitó el paquete opcional de navegación NavMesh, que no se utilizaba.
+
+`Revision/RespaldoAntesDeRevision.zip` guarda la versión previa. `Library`, `Logs`, `UserSettings`, soluciones y archivos de proyecto son datos locales generados por Unity y no forman parte del repositorio de entrega.

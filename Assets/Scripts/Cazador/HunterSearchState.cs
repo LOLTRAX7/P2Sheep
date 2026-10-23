@@ -26,7 +26,7 @@ public class HunterSearchState : State<HunterAgent.HunterState>
     public override void Enter()
     {
         _hasWanderTarget = false;
-        _interestTimer = _hunter.InterestPointInterval;
+        // Se conserva el tiempo acumulado al interrumpir Search para atacar/recolectar.
 
         _hunter.SetFeedback(HunterAgent.HunterState.Search, null, "Yendo al Coto de caza");
         FeedbackLog.Add("[Cazador] Search: se dirige al Coto de caza.", Color.white, false);
@@ -38,6 +38,24 @@ public class HunterSearchState : State<HunterAgent.HunterState>
         if (_hunter.ShouldFlee)
         {
             _fsm.ChangeState(HunterAgent.HunterState.Flee);
+            return;
+        }
+
+        // El intervalo avanza mientras Search está activo dentro del Coto,
+        // incluso en frames que terminan en Attack o Gather.
+        if (_hunter.HuntingZone != null && _hunter.HuntingZone.Contains(_hunter.transform.position))
+        {
+            _interestTimer += Time.deltaTime;
+            if (_interestTimer >= _hunter.InterestPointInterval)
+            {
+                _interestTimer = 0f;
+                _hunter.SpawnInterestPoint();
+            }
+        }
+
+        if (_hunter.Gathers >= _hunter.RequiredGathers)
+        {
+            _fsm.ChangeState(HunterAgent.HunterState.Exit);
             return;
         }
 
@@ -66,15 +84,6 @@ public class HunterSearchState : State<HunterAgent.HunterState>
             _hunter.MoveTo(_hunter.HuntingZone.Center, _hunter.MoveSpeed);
             _hunter.SetFeedback(HunterAgent.HunterState.Search, null, "Yendo al Coto de caza");
             return;
-        }
-
-        // Ya está dentro del Coto: genera objetos de interés cada cierto intervalo.
-        _interestTimer -= Time.deltaTime;
-
-        if (_interestTimer <= 0f)
-        {
-            _interestTimer = _hunter.InterestPointInterval;
-            _hunter.SpawnInterestPoint();
         }
 
         // Si no percibe Boids vivos, recorre el Coto hacia nodos elegidos al azar.

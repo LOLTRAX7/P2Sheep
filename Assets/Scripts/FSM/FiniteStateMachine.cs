@@ -2,12 +2,22 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+// Base de clase: StateMachine (Clase 5) y FiniteStateMachine<T> (Pathfinding + LoS + FoV).
+// Adaptaciones: asociación estado/FSM, ID para feedback y transiciones globales prioritarias.
+
 // Es el motor de la FSM. Se encarga de guardar los estados, saber cuál está activo
 // y realizar los cambios entre ellos.
 public class FiniteStateMachine<T>
 {
     private State<T> _currentState;
     private readonly Dictionary<T, State<T>> _allStates = new();
+    private readonly List<(T target, Func<bool> condition)> _globalTransitions = new();
+
+    // Las condiciones se evalúan dentro de la FSM, en orden de prioridad.
+    public void AddGlobalTransition(T target, Func<bool> condition)
+    {
+        _globalTransitions.Add((target, condition));
+    }
 
     // Parcial 2: ID del estado activo y aviso de cada cambio (lo usan el feedback y los HUD de los lobos).
     public T CurrentStateID { get; private set; }
@@ -45,6 +55,14 @@ public class FiniteStateMachine<T>
 
     public void Update()
     {
+        foreach (var transition in _globalTransitions)
+        {
+            if (EqualityComparer<T>.Default.Equals(CurrentStateID, transition.target)) continue;
+            if (!transition.condition()) continue;
+            ChangeState(transition.target);
+            return;
+        }
+
         // Cada frame, la FSM deja que el estado actualmente activo ejecute su lógica.
         if (_currentState != null) _currentState.Update();
     }

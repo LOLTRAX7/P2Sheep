@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="18" result="Passed" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-23 23:17:55Z" end-time="2026-10-23 23:19:27Z" duration="92.1702869">
+  <test-suite type="TestSuite" id="1026" name="SheePretator" fullname="SheePretator" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-10-23 23:17:55Z" end-time="2026-10-23 23:19:27Z" duration="92.170287" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1022" name="Parcial2.Tests.PlayMode.dll" fullname="C:/Users/valen/P2/Library/ScriptAssemblies/Parcial2.Tests.PlayMode.dll" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-10-23 23:17:55Z" end-time="2026-10-23 23:19:27Z" duration="92.160924" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="1612" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestFixture" id="1001" name="Parcial2CaptureProbe" fullname="Parcial2CaptureProbe" classname="Parcial2CaptureProbe" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-23 23:17:55Z" end-time="2026-10-23 23:18:02Z" duration="6.579878" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1002" name="Lobo_Captura_Y_Cazador_Reaparece" fullname="Parcial2CaptureProbe.Lobo_Captura_Y_Cazador_Reaparece" methodname="Lobo_Captura_Y_Cazador_Reaparece" classname="Parcial2CaptureProbe" runstate="Runnable" seed="1887881853" result="Passed" start-time="2026-10-23 23:17:55Z" end-time="2026-10-23 23:18:02Z" duration="6.565434" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Nivel generado: 5 zonas, 5 lobos y 8 Boids.
+[Cazador] Inicia en la Zona inicial. Debe recolectar 3 Boids y llegar a la Salida.
+Lobo_2 alcanzó al Cazador dentro de CaptureRadius (1.3 m).
+[Cazador] ¡Alcanzado por un lobo! Pasa a DEAD.
+[Cazador] DEAD. Reaparece en la Zona inicial en 5.0 s.
+[Cazador] Reapareció en la Zona inicial con el contador en cero.
+[Cazador] ¡Ve un lobo! Huye a la Zona segura más cercana por A*: Zona_Segura_A.
+]]></output>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1003" name="Parcial2RequirementsTests" fullname="Parcial2RequirementsTests" classname="Parcial2RequirementsTests" runstate="Runnable" testcasecount="15" result="Passed" start-time="2026-10-23 23:18:02Z" end-time="2026-10-23 23:19:17Z" duration="75.299603" total="15" passed="15" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1009" name="Alerta_ComparteUnaPosicionQueNoSeActualizaSinPercepcion" fullname="Parcial2RequirementsTests.Alerta_ComparteUnaPosicionQueNoSeActualizaSinPercepcion" methodname="Alerta_ComparteUnaPosicionQueNoSeActualizaSinPercepcion" classname="Parcial2RequirementsTests" runstate="Runnable" seed="249225055" result="Passed" start-time="2026-10-23 23:18:02Z" end-time="2026-10-23 23:18:02Z" duration="0.794843" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Nivel generado: 5 zonas, 5 lobos y 8 Boids.
+[Cazador] Inicia en la Zona inicial. Debe recolectar 3 Boids y llegar a la Salida.
+Lobo_1 no tiene ruta de patrulla configurada.
+Lobo_5 aúlla y avisa: Cazador en (2.0, -1.0).
+]]></output>
+        </test-case>
+        <test-case id="1017" name="AStar_CostoMinimoParaTodosLosParesConYSinRefugios" fullname="Parcial2RequirementsTests.AStar_CostoMinimoParaTodosLosParesConYSinRefugios" methodname="AStar_CostoMinimoParaTodosLosParesConYSinRefugios" classname="Parcial2RequirementsTests" runstate="Runnable" seed="1201174300" result="Passed" start-time="2026-10-23 23:18:02Z" end-time="2026-10-23 23:18:03Z" duration="0.511167" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Nivel generado: 5 zonas, 5 lobos y 8 Boids.
+[Cazador] Inicia en la Zona inicial. Debe recolectar 3 Boids y llegar a la Salida.
+[Revision] A*: 4234 caminos con costo mínimo verificado.
+]]></output>
+        </test-case>
+        <test-case id="1015" name="Attack_RespetaTBA_YPerderElObjetivoNoLoReinicia" fullname="Parcial2RequirementsTests.Attack_RespetaTBA_YPerderElObjetivoNoLoReinicia" methodname="Attack_RespetaTBA_YPerderElObjetivoNoLoReinicia" classname="Parcial2RequirementsTests" runstate="Runnable" seed="1376677807" result="Passed" start-time="2026-10-23 23:18:03Z" end-time="2026-10-23 23:18:04Z" duration="0.997017" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Nivel generado: 5 zonas, 5 lobos y 8 Boids.
+[Cazador] Inicia en la Zona inicial. Debe recolectar 3 Boids y llegar a la Salida.
+[Boid_8] Recibe 50 de daño. Vida: 50/100.
+[Cazador] Ataque A DISTANCIA a Boid_8
+]]></output>
+        </test-case>
+        <test-case id="1013" name="Boids_SalenDeSuperposicionYSeMantienenDentroDelCoto" fullname="Parcial2RequirementsTests.Boids_SalenDeSuperposicionYSeMantienenDentroDelCoto" methodname="Boids_SalenDeSuperposicionYSeMantienenDentroDelCoto" classname="Parcial2RequirementsTests" runstate="Runnable" seed="1075841739" result="Passed" start-time="2026-10-23 23:18:04Z" end-time="2026-10-23 23:18:06Z" duration="2.258485" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Nivel generado: 5 zonas, 5 lobos y 8 Boids.
+[Cazador] Inicia en la Zona inicial. Debe recolectar 3 Boids y llegar a la Salida.
+]]></output>
+        </test-case>
+        <test-case id="1007" name="Cazador_UsaAStarParaViajarInclusoConVisionDirecta" fullname="Parcial2RequirementsTests.Cazador_UsaAStarParaViajarInclusoConVisionDirecta" methodname="Cazador_UsaAStarParaViajarInclusoConVisionDirecta" classname="Parcial2RequirementsTests" runstate="Runnable" seed="139763898" result="Passed" start-time="2026-10-23 23:18:06Z" end-time="2026-10-23 23:18:06Z" duration="0.233483" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Nivel generado: 5 zonas, 5 lobos y 8 Boids.
+[Cazador] Inicia en la Zona inicial. Debe recolectar 3 Boids y llegar a la Salida.
+]]></output>
+        </test-case>
+        <test-case id="1014" name="CicloAutonomo_CazaRecolectaSaleYReinicia" fullname="Parcial2RequirementsTests.CicloAutonomo_CazaRecolectaSaleYReinicia" methodname="CicloAutonomo_CazaRecolectaSaleYReinicia" classname="Parcial2RequirementsTests" runstate="Runnable" seed="1138646222" result="Passed" start-time="2026-10-23 23:18:06Z" end-time="2026-10-23 23:18:09Z" duration="2.804574" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Nivel generado: 5 zonas, 5 lobos y 8 Boids.
+[Cazador] Inicia en la Zona inicial. Debe recolectar 3 Boids y llegar a la Salida.
+[Boid_5] Recibe 50 de daño. Vida: 50/100.
+[Cazador] Ataque A DISTANCIA a Boid_5
+[Boid_5] Recibe 50 de daño. Vida: 0/100.
+[Boid_5] Eliminado. Queda inactivo hasta que el cazador lo recolecte.
+[Cazador] Ataque A DISTANCIA a Boid_5
+[Boid_5] Recolectado por el cazador. Reaparece en 5.0s.
+[Cazador] Recolección completada (1/3).
+[Boid_1] Recibe 50 de daño. Vida: 50/100.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Boid_1] Recibe 50 de daño. Vida: 0/100.
+[Boid_1] Eliminado. Queda inactivo hasta que el cazador lo recolecte.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Boid_5] Reapareció en (0.31, 0.40, -3.97).
+[Boid_1] Recolectado por el cazador. Reaparece en 5.0s.
+[Cazador] Recolección completada (2/3).
+[Boid_6] Recibe 50 de daño. Vida: 50/100.
+[Cazador] Ataque A DISTANCIA a Boid_6
+[Boid_6] Recibe 50 de daño. Vida: 0/100.
+[Boid_6] Eliminado. Queda inactivo hasta que el cazador lo recolecte.
+[Cazador] Ataque A DISTANCIA a Boid_6
+[Boid_6] Recolectado por el cazador. Reaparece en 5.0s.
+[Cazador] Recolección completada (3/3).
+[Cazador] Exit: recolectó 3/3. Se dirige a la Salida.
+[Boid_1] Reapareció en (-1.70, 0.40, 6.26).
+[Boid_6] Reapareció en (9.88, 0.40, 2.32).
+[Cazador] Objetivo cumplido: reaparece en la Zona inicial y reinicia el ciclo.
+]]></output>
+        </test-case>
+        <test-case id="1016" name="Dead_InterrumpeExitYReiniciaDespuesDelTiempoConfigurado" fullname="Parcial2RequirementsTests.Dead_InterrumpeExitYReiniciaDespuesDelTiempoConfigurado" methodname="Dead_InterrumpeExitYReiniciaDespuesDelTiempoConfigurado" classname="Parcial2RequirementsTests" runstate="Runnable" seed="522205145" result="Passed" start-time="2026-10-23 23:18:09Z" end-time="2026-10-23 23:18:15Z" duration="5.338658" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Nivel generado: 5 zonas, 5 lobos y 8 Boids.
+[Cazador] Inicia en la Zona inicial. Debe recolectar 3 Boids y llegar a la Salida.
+[Cazador] Recolección completada (1/3).
+[Cazador] Recolección completada (2/3).
+[Cazador] Recolección completada (3/3).
+[Cazador] Exit: recolectó 3/3. Se dirige a la Salida.
+Lobo_5 alcanzó al Cazador dentro de CaptureRadius (1.3 m).
+[Cazador] ¡Alcanzado por un lobo! Pasa a DEAD.
+[Cazador] DEAD. Reaparece en la Zona inicial en 5.0 s.
+[Cazador] Reapareció en la Zona inicial con el contador en cero.
+]]></output>
+        </test-case>
+        <test-case id="1011" name="Gather_CanceladoPorAmenaza_NoSumaYEsperaEnRefugio" fullname="Parcial2RequirementsTests.Gather_CanceladoPorAmenaza_NoSumaYEsperaEnRefugio" methodname="Gather_CanceladoPorAmenaza_NoSumaYEsperaEnRefugio" classname="Parcial2RequirementsTests" runstate="Runnable" seed="2009776056" result="Passed" start-time="2026-10-23 23:18:15Z" end-time="2026-10-23 23:18:19Z" duration="4.873493" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Nivel generado: 5 zonas, 5 lobos y 8 Boids.
+[Cazador] Inicia en la Zona inicial. Debe recolectar 3 Boids y llegar a la Salida.
+[Boid_7] Recibe 1000 de daño. Vida: 0/100.
+[Boid_7] Eliminado. Queda inactivo hasta que el cazador lo recolecte.
+[Cazador] ¡Ve un lobo! Huye a la Zona segura más cercana por A*: Zona_Segura_B.
+]]></output>
+        </test-case>
+        <test-case id="1012" name="ObjetivoDesapareceDuranteGather_NoSuma" fullname="Parcial2RequirementsTests.ObjetivoDesapareceDuranteGather_NoSuma" methodname="ObjetivoDesapareceDuranteGather_NoSuma" classname="Parcial2RequirementsTests" runstate="Runnable" seed="71154116" result="Passed" start-time="2026-10-23 23:18:19Z" end-time="2026-10-23 23:18:20Z" duration="0.251304" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Nivel generado: 5 zonas, 5 lobos y 8 Boids.
+[Cazador] Inicia en la Zona inicial. Debe recolectar 3 Boids y llegar a la Salida.
+[Boid_8] Recibe 1000 de daño. Vida: 0/100.
+[Boid_8] Eliminado. Queda inactivo hasta que el cazador lo recolecte.
+[Boid_6] Recibe 50 de daño. Vida: 50/100.
+[Cazador] Ataque A DISTANCIA a Boid_6
+]]></output>
+        </test-case>
+        <test-case id="1004" name="ObjetosDeInteres_SeCreanEnLaPosicionElegidaYRespetanElLimite" fullname="Parcial2RequirementsTests.ObjetosDeInteres_SeCreanEnLaPosicionElegidaYRespetanElLimite" methodname="ObjetosDeInteres_SeCreanEnLaPosicionElegidaYRespetanElLimite" classname="Parcial2RequirementsTests" runstate="Runnable" seed="1368035096" result="Passed" start-time="2026-10-23 23:18:20Z" end-time="2026-10-23 23:18:20Z" duration="0.252973" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Nivel generado: 5 zonas, 5 lobos y 8 Boids.
+[Cazador] Inicia en la Zona inicial. Debe recolectar 3 Boids y llegar a la Salida.
+]]></output>
+        </test-case>
+        <test-case id="1010" name="Refugio_SeEligePorCostoAStarYLobosNoPuedenCruzar" fullname="Parcial2RequirementsTests.Refugio_SeEligePorCostoAStarYLobosNoPuedenCruzar" methodname="Refugio_SeEligePorCostoAStarYLobosNoPuedenCruzar" classname="Parcial2RequirementsTests" runstate="Runnable" seed="47711112" result="Passed" start-time="2026-10-23 23:18:20Z" end-time="2026-10-23 23:18:20Z" duration="0.437018" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Nivel generado: 5 zonas, 5 lobos y 8 Boids.
+[Cazador] Inicia en la Zona inicial. Debe recolectar 3 Boids y llegar a la Salida.
+]]></output>
+        </test-case>
+        <test-case id="1005" name="Search_ConservaElIntervaloEntreInterrupciones" fullname="Parcial2RequirementsTests.Search_ConservaElIntervaloEntreInterrupciones" methodname="Search_ConservaElIntervaloEntreInterrupciones" classname="Parcial2RequirementsTests" runstate="Runnable" seed="619351364" result="Passed" start-time="2026-10-23 23:18:20Z" end-time="2026-10-23 23:18:22Z" duration="1.296230" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Nivel generado: 5 zonas, 5 lobos y 8 Boids.
+[Cazador] Inicia en la Zona inicial. Debe recolectar 3 Boids y llegar a la Salida.
+]]></output>
+        </test-case>
+        <test-case id="1018" name="SimulacionConLobos_PercibeHuyeYRespetaParedesYRefugios" fullname="Parcial2RequirementsTests.SimulacionConLobos_PercibeHuyeYRespetaParedesYRefugios" methodname="SimulacionConLobos_PercibeHuyeYRespetaParedesYRefugios" classname="Parcial2RequirementsTests" runstate="Runnable" seed="1066341292" result="Passed" start-time="2026-10-23 23:18:22Z" end-time="2026-10-23 23:19:16Z" duration="54.715069" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Nivel generado: 5 zonas, 5 lobos y 8 Boids.
+[Cazador] Inicia en la Zona inicial. Debe recolectar 3 Boids y llegar a la Salida.
+[Boid_5] Recibe 50 de daño. Vida: 50/100.
+[Cazador] Ataque A DISTANCIA a Boid_5
+[Boid_5] Recibe 50 de daño. Vida: 0/100.
+[Boid_5] Eliminado. Queda inactivo hasta que el cazador lo recolecte.
+[Cazador] Ataque A DISTANCIA a Boid_5
+[Boid_5] Recolectado por el cazador. Reaparece en 5.0s.
+[Cazador] Recolección completada (1/3).
+[Boid_1] Recibe 50 de daño. Vida: 50/100.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Boid_1] Recibe 50 de daño. Vida: 0/100.
+[Boid_1] Eliminado. Queda inactivo hasta que el cazador lo recolecte.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Boid_5] Reapareció en (0.31, 0.40, -3.97).
+[Boid_1] Recolectado por el cazador. Reaparece en 5.0s.
+[Cazador] Recolección completada (2/3).
+[Boid_7] Recibe 100 de daño. Vida: 0/100.
+[Boid_7] Eliminado. Queda inactivo hasta que el cazador lo recolecte.
+[Cazador] Ataque CUERPO A CUERPO a Boid_7
+[Boid_7] Recolectado por el cazador. Reaparece en 5.0s.
+[Cazador] Recolección completada (3/3).
+[Cazador] Exit: recolectó 3/3. Se dirige a la Salida.
+[Boid_1] Reapareció en (-1.70, 0.40, 6.26).
+[Boid_7] Reapareció en (9.88, 0.40, 2.32).
+[Cazador] Objetivo cumplido: reaparece en la Zona inicial y reinicia el ciclo.
+[Revision] Simulación con lobos: Search en (-37.20, 0.95, -3.00), recolecciones 0, máximo 3, Exit True
+Lobo_1 aúlla y avisa: Cazador en (-28.8, 5.6).
+[Cazador] ¡Ve un lobo! Huye a la Zona segura más cercana por A*: Zona_Segura_A.
+[Revision] Simulación con lobos: Search en (6.61, 0.95, 3.00), recolecciones 0, máximo 3, Exit True
+[Boid_7] Recibe 50 de daño. Vida: 50/100.
+[Cazador] Ataque A DISTANCIA a Boid_7
+[Boid_7] Recibe 50 de daño. Vida: 0/100.
+[Boid_7] Eliminado. Queda inactivo hasta que el cazador lo recolecte.
+[Cazador] Ataque A DISTANCIA a Boid_7
+[Boid_7] Recolectado por el cazador. Reaparece en 5.0s.
+[Cazador] Recolección completada (1/3).
+[Boid_1] Recibe 50 de daño. Vida: 50/100.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Boid_1] Recibe 50 de daño. Vida: 0/100.
+[Boid_1] Eliminado. Queda inactivo hasta que el cazador lo recolecte.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Boid_7] Reapareció en (-2.82, 0.40, -6.63).
+[Boid_1] Recolectado por el cazador. Reaparece en 5.0s.
+[Cazador] Recolección completada (2/3).
+[Boid_7] Recibe 50 de daño. Vida: 50/100.
+[Cazador] Ataque A DISTANCIA a Boid_7
+[Boid_7] Recibe 50 de daño. Vida: 0/100.
+[Boid_7] Eliminado. Queda inactivo hasta que el cazador lo recolecte.
+[Cazador] Ataque A DISTANCIA a Boid_7
+[Boid_1] Reapareció en (2.70, 0.40, 3.69).
+[Boid_7] Recolectado por el cazador. Reaparece en 5.0s.
+[Cazador] Recolección completada (3/3).
+[Cazador] Exit: recolectó 3/3. Se dirige a la Salida.
+[Boid_7] Reapareció en (10.93, 0.40, -2.08).
+[Revision] Simulación con lobos: Exit en (38.81, 0.95, -1.97), recolecciones 3, máximo 3, Exit True
+[Cazador] Objetivo cumplido: reaparece en la Zona inicial y reinicia el ciclo.
+Lobo_1 aúlla y avisa: Cazador en (-29.0, 7.7).
+[Cazador] ¡Ve un lobo! Huye a la Zona segura más cercana por A*: Zona_Segura_A.
+Lobo_4 aúlla y avisa: Cazador en (-26.0, 1.1).
+Lobo_4 abandona la persecución: el Cazador entró a una Zona segura.
+[Cazador] ¡Ve un lobo! Huye a la Zona segura más cercana por A*: Zona_Segura_A.
+[Cazador] ¡Ve un lobo! Huye a la Zona segura más cercana por A*: Zona_Segura_A.
+[Revision] Simulación con lobos: Attack en (-11.25, 0.95, 4.33), recolecciones 0, máximo 3, Exit True
+[Boid_1] Recibe 50 de daño. Vida: 50/100.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Boid_1] Recibe 50 de daño. Vida: 0/100.
+[Boid_1] Eliminado. Queda inactivo hasta que el cazador lo recolecte.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Boid_1] Recolectado por el cazador. Reaparece en 5.0s.
+[Cazador] Recolección completada (1/3).
+[Boid_1] Reapareció en (4.46, 0.40, 4.08).
+[Boid_1] Recibe 50 de daño. Vida: 50/100.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Boid_1] Recibe 50 de daño. Vida: 0/100.
+[Boid_1] Eliminado. Queda inactivo hasta que el cazador lo recolecte.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Cazador] ¡Ve un lobo! Huye a la Zona segura más cercana por A*: Zona_Segura_B.
+[Revision] Simulación con lobos: Search en (28.69, 0.95, -3.19), recolecciones 1, máximo 3, Exit True
+[Boid_1] Recolectado por el cazador. Reaparece en 5.0s.
+[Cazador] Recolección completada (2/3).
+Lobo_3 aúlla y avisa: Cazador en (-2.9, -3.1).
+[Boid_1] Reapareció en (1.19, 0.40, 2.45).
+[Boid_1] Recibe 50 de daño. Vida: 50/100.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Cazador] ¡Ve un lobo! Huye a la Zona segura más cercana por A*: Zona_Segura_B.
+Lobo_3 aúlla y avisa: Cazador en (28.1, 0.2).
+[Cazador] ¡Ve un lobo! Huye a la Zona segura más cercana por A*: Zona_Segura_B.
+[Revision] Simulación con lobos: Search en (21.46, 0.95, 6.01), recolecciones 2, máximo 3, Exit True
+[Cazador] ¡Ve un lobo! Huye a la Zona segura más cercana por A*: Zona_Segura_B.
+[Boid_1] Recibe 50 de daño. Vida: 0/100.
+[Boid_1] Eliminado. Queda inactivo hasta que el cazador lo recolecte.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Boid_1] Recolectado por el cazador. Reaparece en 5.0s.
+[Cazador] Recolección completada (3/3).
+[Cazador] Exit: recolectó 3/3. Se dirige a la Salida.
+[Boid_1] Reapareció en (7.90, 0.40, -6.83).
+[Cazador] Objetivo cumplido: reaparece en la Zona inicial y reinicia el ciclo.
+[Revision] Simulación con lobos: Search en (-34.27, 0.95, -3.00), recolecciones 0, máximo 3, Exit True
+[Boid_1] Recibe 50 de daño. Vida: 50/100.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Boid_1] Recibe 50 de daño. Vida: 0/100.
+[Boid_1] Eliminado. Queda inactivo hasta que el cazador lo recolecte.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Boid_1] Recolectado por el cazador. Reaparece en 5.0s.
+[Cazador] Recolección completada (1/3).
+[Boid_1] Reapareció en (-6.81, 0.40, 5.11).
+[Boid_1] Recibe 50 de daño. Vida: 50/100.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Boid_1] Recibe 50 de daño. Vida: 0/100.
+[Boid_1] Eliminado. Queda inactivo hasta que el cazador lo recolecte.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Boid_1] Recolectado por el cazador. Reaparece en 5.0s.
+[Cazador] Recolección completada (2/3).
+Lobo_3 aúlla y avisa: Cazador en (-0.4, -4.3).
+Lobo_4 aúlla y avisa: Cazador en (-2.0, -5.1).
+[Cazador] ¡Ve un lobo! Huye a la Zona segura más cercana por A*: Zona_Segura_B.
+[Boid_1] Reapareció en (9.59, 0.40, -2.38).
+[Revision] Simulación con lobos: Flee en (1.87, 0.95, -3.84), recolecciones 2, máximo 3, Exit True
+Lobo_2 aúlla y avisa: Cazador en (12.2, -3.5).
+Lobo_3 aúlla y avisa: Cazador en (18.0, -3.3).
+Lobo_2 alcanzó al Cazador dentro de CaptureRadius (1.3 m).
+[Cazador] ¡Alcanzado por un lobo! Pasa a DEAD.
+[Cazador] DEAD. Reaparece en la Zona inicial en 5.0 s.
+[Cazador] Reapareció en la Zona inicial con el contador en cero.
+[Cazador] ¡Ve un lobo! Huye a la Zona segura más cercana por A*: Zona_Segura_A.
+[Cazador] ¡Ve un lobo! Huye a la Zona segura más cercana por A*: Zona_Segura_A.
+[Revision] Simulación con lobos: Search en (-26.99, 0.95, 8.81), recolecciones 0, máximo 3, Exit True
+[Boid_1] Recibe 50 de daño. Vida: 50/100.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Boid_1] Recibe 50 de daño. Vida: 0/100.
+[Boid_1] Eliminado. Queda inactivo hasta que el cazador lo recolecte.
+[Cazador] Ataque A DISTANCIA a Boid_1
+Lobo_2 aúlla y avisa: Cazador en (-1.2, 0.5).
+[Cazador] ¡Ve un lobo! Huye a la Zona segura más cercana por A*: Zona_Segura_B.
+[Boid_1] Recolectado por el cazador. Reaparece en 5.0s.
+[Cazador] Recolección completada (1/3).
+[Revision] Simulación con lobos: Search en (6.48, 0.95, -1.58), recolecciones 1, máximo 3, Exit True
+Lobo_4 aúlla y avisa: Cazador en (0.1, -2.8).
+Lobo_3 aúlla y avisa: Cazador en (2.1, -3.3).
+[Cazador] ¡Ve un lobo! Huye a la Zona segura más cercana por A*: Zona_Segura_B.
+[Boid_1] Reapareció en (3.82, 0.40, -4.05).
+Lobo_3 aúlla y avisa: Cazador en (28.9, -2.7).
+[Cazador] ¡Ve un lobo! Huye a la Zona segura más cercana por A*: Zona_Segura_B.
+Lobo_2 aúlla y avisa: Cazador en (25.5, 0.0).
+Lobo_2 abandona la persecución: el Cazador entró a una Zona segura.
+[Cazador] ¡Ve un lobo! Huye a la Zona segura más cercana por A*: Zona_Segura_B.
+[Revision] Simulación con lobos: Flee en (18.00, 0.95, 6.03), recolecciones 1, máximo 3, Exit True
+[Cazador] ¡Ve un lobo! Huye a la Zona segura más cercana por A*: Zona_Segura_B.
+[Boid_1] Recibe 50 de daño. Vida: 50/100.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Boid_1] Recibe 50 de daño. Vida: 0/100.
+[Boid_1] Eliminado. Queda inactivo hasta que el cazador lo recolecte.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Boid_1] Recolectado por el cazador. Reaparece en 5.0s.
+[Cazador] Recolección completada (2/3).
+[Boid_1] Reapareció en (4.17, 0.40, 2.94).
+[Boid_1] Recibe 50 de daño. Vida: 50/100.
+[Cazador] Ataque A DISTANCIA a Boid_1
+[Boid_1] Recibe 50 de daño. Vida: 0/100.
+[Boid_1] Eliminado. Queda inactivo hasta que el cazador lo recolecte.
+[Cazador] Ataque A DISTANCIA a Boid_1
+]]></output>
+        </test-case>
+        <test-case id="1006" name="SinCamino_ElAgenteNoAvanzaAtravesandoParedes" fullname="Parcial2RequirementsTests.SinCamino_ElAgenteNoAvanzaAtravesandoParedes" methodname="SinCamino_ElAgenteNoAvanzaAtravesandoParedes" classname="Parcial2RequirementsTests" runstate="Runnable" seed="735028835" result="Passed" start-time="2026-10-23 23:19:16Z" end-time="2026-10-23 23:19:17Z" duration="0.273945" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Nivel generado: 5 zonas, 5 lobos y 8 Boids.
+[Cazador] Inicia en la Zona inicial. Debe recolectar 3 Boids y llegar a la Salida.
+]]></output>
+        </test-case>
+        <test-case id="1008" name="Vision_RespetaDistanciaAnguloParedesYRefugios" fullname="Parcial2RequirementsTests.Vision_RespetaDistanciaAnguloParedesYRefugios" methodname="Vision_RespetaDistanciaAnguloParedesYRefugios" classname="Parcial2RequirementsTests" runstate="Runnable" seed="337714212" result="Passed" start-time="2026-10-23 23:19:17Z" end-time="2026-10-23 23:19:17Z" duration="0.256186" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Nivel generado: 5 zonas, 5 lobos y 8 Boids.
+[Cazador] Inicia en la Zona inicial. Debe recolectar 3 Boids y llegar a la Salida.
+]]></output>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1019" name="Parcial2SmokeTests" fullname="Parcial2SmokeTests" classname="Parcial2SmokeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-23 23:19:17Z" end-time="2026-10-23 23:19:27Z" duration="10.279540" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1020" name="Escena_SeConstruye_ConGrafoConectado" fullname="Parcial2SmokeTests.Escena_SeConstruye_ConGrafoConectado" methodname="Escena_SeConstruye_ConGrafoConectado" classname="Parcial2SmokeTests" runstate="Runnable" seed="628967885" result="Passed" start-time="2026-10-23 23:19:17Z" end-time="2026-10-23 23:19:23Z" duration="6.324511" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Nivel generado: 5 zonas, 5 lobos y 8 Boids.
+[Cazador] Inicia en la Zona inicial. Debe recolectar 3 Boids y llegar a la Salida.
+]]></output>
+        </test-case>
+        <test-case id="1021" name="Parcial1_SigueCargandoYBoidSpawner" fullname="Parcial2SmokeTests.Parcial1_SigueCargandoYBoidSpawner" methodname="Parcial1_SigueCargandoYBoidSpawner" classname="Parcial2SmokeTests" runstate="Runnable" seed="2034588224" result="Passed" start-time="2026-10-23 23:19:23Z" end-time="2026-10-23 23:19:27Z" duration="3.953814" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Saving results to: C:/Users/valen/AppData/LocalLow/DefaultCompany/SheePretator\TestResults.xml
+]]></output>
+        </test-case>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

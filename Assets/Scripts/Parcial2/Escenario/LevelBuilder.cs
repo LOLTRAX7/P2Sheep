@@ -25,7 +25,7 @@ public class LevelBuilder : MonoBehaviour
     [Header("Escena")]
     [SerializeField] private bool _setupCamera = true;
     [SerializeField] private bool _createHud = true;
-    [SerializeField] private bool _runGraphSelfTest = true;
+    [SerializeField] private bool _runGraphSelfTest = false;
 
     [Header("Prefabs (opcional)")]
     [Tooltip("Si se asignan, LevelBuilder los instancia en lugar de crear primitivas por código. Si no, se usa el comportamiento actual.")]
@@ -315,6 +315,9 @@ public class LevelBuilder : MonoBehaviour
             _safeZones,
             _exitZone,
             _nodesById[LevelData.HunterExitNode].transform.position);
+
+        if (_interestPointPrefab != null)
+            _hunter.ConfigureInterestPoint(_interestPointPrefab.GetComponent<InterestPoint>());
     }
 
     private void BuildBoids()

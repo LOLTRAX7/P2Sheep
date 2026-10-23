@@ -44,7 +44,7 @@ public class HunterGatherState : State<HunterAgent.HunterState>
         }
 
         // El Boid ya no está disponible (lo recolectó otro, revivió, etc.): se abandona sin sumar.
-        if (_target == null || !_target.IsEliminated || !_target.IsPendingGather)
+        if (_target == null || !_target.isActiveAndEnabled || !_target.IsEliminated || !_target.IsPendingGather)
         {
             FeedbackLog.Add("[Cazador] Gather cancelado: el objetivo ya no está disponible.", Color.yellow, false);
             _fsm.ChangeState(HunterAgent.HunterState.Search);
@@ -55,6 +55,7 @@ public class HunterGatherState : State<HunterAgent.HunterState>
 
         if (distance > _hunter.GatherInteractionRadius)
         {
+            _gatherTimer = 0f;
             // Tramo final: si hay línea de visión directa, Seek/Arrive; si no, A* sobre el grafo.
             if (_hunter.HasClearSightTo(_target.transform.position))
                 _hunter.MoveDirect(_target.transform.position, _hunter.MoveSpeed);

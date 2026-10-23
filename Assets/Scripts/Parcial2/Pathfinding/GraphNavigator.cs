@@ -7,8 +7,8 @@ using UnityEngine;
 //   - Si hay línea recta libre (sin paredes) hacia el destino, devuelve el destino: va directo.
 //   - Si no, calcula un camino con A* sobre el grafo y devuelve el próximo nodo del camino.
 //
-// El Cazador sólo usa el tramo directo para el ataque (Pursuit) y la recolección; para ir al Coto,
-// a una Zona segura o a la Salida el GraphNavigator hace A* cuando no hay línea de visión.
+// El Cazador configura requireGraphPath: para ir al Coto, refugio o Salida
+// calcula A* incluso con visión directa. Pursuit/Gather usan su tramo final aparte.
 //
 // Los lobos se configuran con avoidSafeZones = true: A* nunca usa los nodos de las Zonas seguras.
 public class GraphNavigator : MonoBehaviour
@@ -33,6 +33,8 @@ public class GraphNavigator : MonoBehaviour
     private Vector3 _plannedDestination;
     private bool _hasPlan;
     private bool _avoidSafeZones;
+    private bool _requireGraphPath;
+    private bool _routeFound;
     private float _lastPlanTime = -999f;
     private float _nextLineCheck;
     private float _nextLogTime;
@@ -47,9 +49,10 @@ public class GraphNavigator : MonoBehaviour
     public bool AvoidSafeZones => _avoidSafeZones;
 
     // Lo llama el LevelBuilder / WolfAgent.
-    public void Configure(bool avoidSafeZones)
+    public void Configure(bool avoidSafeZones, bool requireGraphPath = false)
     {
         _avoidSafeZones = avoidSafeZones;
+        _requireGraphPath = requireGraphPath;
     }
 
     // Olvida el camino actual (se llama al cambiar de estado).
@@ -57,6 +60,7 @@ public class GraphNavigator : MonoBehaviour
     {
         _path.Clear();
         _hasPlan = false;
+        _routeFound = false;
     }
 
     // ¿El destino está prohibido para este agente? (los lobos no pueden entrar a las Zonas seguras).
@@ -70,8 +74,8 @@ public class GraphNavigator : MonoBehaviour
     {
         Graph graph = Graph.Current;
 
-        // Sin grafo en la escena se comporta como un movimiento directo.
-        if (graph == null) return destination;
+        // Sin grafo no hay una ruta válida de navegación.
+        if (graph == null) return transform.position;
 
         if (IsDestinationForbidden(destination))
         {
@@ -83,7 +87,7 @@ public class GraphNavigator : MonoBehaviour
 
         bool destinationMoved = Flat(destination - _plannedDestination).sqrMagnitude > _destinationRepathDistance * _destinationRepathDistance;
 
-        if (!_hasPlan || (destinationMoved && Time.time - _lastPlanTime >= _minRepathInterval))
+        if (!_hasPlan || ((destinationMoved || !_routeFound) && Time.time - _lastPlanTime >= _minRepathInterval))
         {
             Plan(graph, position, destination);
         }
@@ -91,22 +95,26 @@ public class GraphNavigator : MonoBehaviour
         {
             _nextLineCheck = Time.time + _lineCheckInterval;
 
-            bool clear = graph.IsPathClear(position, destination);
+            bool clear = graph.CanTravel(position, destination, _avoidSafeZones);
 
             // Iba directo y apareció una pared en el medio: ahora hace falta A*.
             if (_path.Count == 0 && !clear) Plan(graph, position, destination);
 
             // Iba por el grafo y ya hay línea recta: atajo, se descarta el resto del camino.
-            else if (_path.Count > 0 && clear) _path.Clear();
+            else if (!_requireGraphPath && _path.Count > 0 && clear) _path.Clear();
         }
 
         // Se descartan los nodos que ya se alcanzaron.
         while (_path.Count > 0 && Flat(_path[0] - position).magnitude <= _nodeArrivalDistance)
         {
+            Vector3 following = _path.Count > 1 ? _path[1] : destination;
+            if (!graph.CanTravel(position, following, _avoidSafeZones)) break;
             _path.RemoveAt(0);
         }
 
-        return _path.Count > 0 ? _path[0] : destination;
+        if (!_routeFound) return position;
+        if (_path.Count > 0) return _path[0];
+        return graph.CanTravel(position, destination, _avoidSafeZones) ? destination : position;
     }
 
     private void Plan(Graph graph, Vector3 position, Vector3 destination)
@@ -116,24 +124,27 @@ public class GraphNavigator : MonoBehaviour
         _lastPlanTime = Time.time;
         _nextLineCheck = Time.time + _lineCheckInterval;
         _path.Clear();
+        _routeFound = false;
 
-        // Si hay línea recta libre no hace falta A*.
-        if (graph.IsPathClear(position, destination)) return;
+        // Los lobos pueden ir directo con LoS; los viajes del Cazador requieren A*.
+        if (!_requireGraphPath && graph.CanTravel(position, destination, _avoidSafeZones))
+        {
+            _routeFound = true;
+            return;
+        }
 
         // Punto de entrada al grafo (desde mi posición) y de salida (hacia el destino).
         Node start = graph.GetClosestVisibleNode(position, false, _avoidSafeZones);
         Node goal = graph.GetClosestVisibleNode(destination, true, _avoidSafeZones);
 
         if (goal == null) goal = graph.GetClosestVisibleNode(destination, false, _avoidSafeZones);
-        if (start == null) start = graph.GetClosestNode(position, _avoidSafeZones);
-        if (goal == null) goal = graph.GetClosestNode(destination, _avoidSafeZones);
-
         if (start == null || goal == null) return;
 
         List<Node> nodes = Pathfinding.AStar(start, goal, _avoidSafeZones);
 
-        // Sin camino posible: queda en movimiento directo (no se inventa una ruta).
+        // Sin camino posible se queda quieto; nunca atraviesa una pared como fallback.
         if (nodes.Count == 0) return;
+        _routeFound = true;
 
         foreach (Node node in nodes) _path.Add(node.transform.position);
 
@@ -151,12 +162,12 @@ public class GraphNavigator : MonoBehaviour
     //  - si desde el penúltimo nodo ya veo el destino, el último sobra.
     private void SmoothPath(Graph graph, Vector3 position, Vector3 destination)
     {
-        while (_path.Count > 1 && graph.IsPathClear(position, _path[1]))
+        while (_path.Count > 1 && graph.CanTravel(position, _path[1], _avoidSafeZones))
         {
             _path.RemoveAt(0);
         }
 
-        while (_path.Count > 1 && graph.IsLinkClear(_path[_path.Count - 2], destination))
+        while (_path.Count > 1 && graph.CanTravel(_path[_path.Count - 2], destination, _avoidSafeZones))
         {
             _path.RemoveAt(_path.Count - 1);
         }

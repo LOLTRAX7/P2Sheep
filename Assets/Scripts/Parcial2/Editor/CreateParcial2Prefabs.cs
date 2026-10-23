@@ -6,13 +6,15 @@ using UnityEngine;
 // Ejecutar: menú "Parcial 2 / Crear prefabs básicos".
 public static class CreateParcial2Prefabs
 {
-    private const string Folder = "Assets/Prefabs";
+    private const string Folder = "Assets/Prefabs/Parcial2";
 
     [MenuItem("Parcial 2/Crear prefabs básicos")]
     public static void CreateAllPrefabs()
     {
-        if (!AssetDatabase.IsValidFolder(Folder))
+        if (!AssetDatabase.IsValidFolder("Assets/Prefabs"))
             AssetDatabase.CreateFolder("Assets", "Prefabs");
+        if (!AssetDatabase.IsValidFolder(Folder))
+            AssetDatabase.CreateFolder("Assets/Prefabs", "Parcial2");
 
         CreateHunterPrefab();
         CreateWolfPrefab();

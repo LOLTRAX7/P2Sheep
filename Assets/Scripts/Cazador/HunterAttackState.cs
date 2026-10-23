@@ -51,7 +51,7 @@ public class HunterAttackState : State<HunterAgent.HunterState>
             return;
         }
 
-        if (_target == null || _target.IsEliminated)
+        if (_target == null || !_target.isActiveAndEnabled || _target.IsEliminated)
         {
             _fsm.ChangeState(HunterAgent.HunterState.Search);
             return;

@@ -34,9 +34,10 @@ public class WolfAgent : Agent
     [SerializeField] private float _patrolSpeed = 2.6f;
     [SerializeField] private float _alertSpeed = 3.4f;
     [SerializeField] private float _chaseSpeed = 4.2f;
+    [SerializeField] private float _maxSteering = 20f;
 
     [Header("Percepción (FoV)")]
-    [SerializeField] private float _viewRadius = 12f;
+    [SerializeField] private float _viewRadius = 18f;
     [SerializeField, Range(0f, 360f)] private float _viewAngle = 110f;
     [SerializeField] private float _eyeHeight = 0.6f;
 
@@ -45,9 +46,9 @@ public class WolfAgent : Agent
 
     [Header("Alerta / aullido")]
     [SerializeField] private float _howlCooldown = 6f;
-    [SerializeField] private float _howlRadius = 60f;
 
     [Header("Búsqueda")]
+    [Tooltip("Intervalo para renovar los nodos de búsqueda. Sigue buscando hasta detectar, recibir una alerta o perder el objetivo por refugio/muerte.")]
     [SerializeField] private float _searchDuration = 6f;
     [SerializeField] private float _scanDuration = 1f;
     [SerializeField] private float _searchRadius = 14f;
@@ -93,7 +94,8 @@ public class WolfAgent : Agent
     public bool HasKnownPosition => _hasKnownPosition;
     public bool HasPendingAlert => _hasPendingAlert;
     public Vector3 LastKnownPosition => _lastKnownPosition;
-    public bool CanSeeHunter => _sensor != null && _sensor.CanSeeTarget && Hunter != null;
+    public bool CanSeeHunter => _sensor != null && _sensor.CanSeeTarget && Hunter != null
+        && Hunter.IsPresent && !Hunter.IsInSafeZone && _sensor.IsVisibleNow(Hunter.transform);
     public HunterAgent Hunter => HunterAgent.Current;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -127,7 +129,7 @@ public class WolfAgent : Agent
         _sensor.TargetFilter = candidate =>
         {
             HunterAgent hunter = candidate != null ? candidate.GetComponent<HunterAgent>() : null;
-            return hunter != null && !hunter.IsDead && !hunter.IsInSafeZone;
+            return hunter != null && hunter.IsPresent && !hunter.IsInSafeZone;
         };
 
         gameObject.GetOrAddComponent<FieldOfViewGizmos>();
@@ -224,9 +226,9 @@ public class WolfAgent : Agent
             return;
         }
 
-        direction.Normalize();
-        transform.position += direction * (speed * Time.deltaTime);
-        transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+        MoveWithSteering(destination, speed, _maxSteering, 0.6f, true);
+        if (_velocity.sqrMagnitude > 0.0001f)
+            transform.rotation = Quaternion.LookRotation(_velocity.normalized, Vector3.up);
     }
 
     public void StopMoving()
@@ -271,7 +273,7 @@ public class WolfAgent : Agent
     {
         HunterAgent hunter = Hunter;
 
-        if (hunter == null || hunter.IsDead || hunter.IsInSafeZone)
+        if (hunter == null || !CanSeeHunter)
         {
             ForgetHunter();
             return;
@@ -279,6 +281,7 @@ public class WolfAgent : Agent
 
         _lastKnownPosition = hunter.transform.position;
         _hasKnownPosition = true;
+        _hasPendingAlert = false; // una observación propia reemplaza alertas anteriores
 
         if (Time.time < _nextHowlTime) return;
 
@@ -294,9 +297,6 @@ public class WolfAgent : Agent
     {
         if (source == this) return;
         if (Hunter == null || Hunter.IsDead || Hunter.IsInSafeZone) return;
-
-        // Sólo se escucha si el aullido está dentro del radio de audición.
-        if (FlatDistanceTo(source.transform.position) > _howlRadius) return;
 
         _pendingAlertPosition = position;
         _hasPendingAlert = true;
@@ -335,8 +335,9 @@ public class WolfAgent : Agent
     {
         HunterAgent hunter = Hunter;
 
-        if (hunter == null || hunter.IsDead || hunter.IsInSafeZone) return false;
+        if (hunter == null || !hunter.IsPresent || hunter.IsInSafeZone) return false;
         if (FlatDistanceToHunter() > _captureRadius) return false;
+        if (_graph != null && !_graph.IsPathClear(transform.position, hunter.transform.position)) return false;
 
         FeedbackLog.Add(name + " alcanzó al Cazador dentro de CaptureRadius (" + _captureRadius.ToString("0.0") + " m).", new Color(1f, 0.15f, 0.15f));
 

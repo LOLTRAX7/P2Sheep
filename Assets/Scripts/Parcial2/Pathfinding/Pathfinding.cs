@@ -1,6 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Base: ejemplos Pathfinding + LoS + FoV y UTN Clase 11 (AStar).
+// Se conserva frontier/cameFrom/costSoFar; se usan distancias reales,
+// heurística euclidiana fija y exclusión de refugios. Sin parámetro visited.
+
 // A* sobre el grafo de nodos del proyecto.
 //
 // Se mantiene la estructura del ejemplo de la materia (frontier, cameFrom, costSoFar) y se agrega:
@@ -52,6 +56,7 @@ public static class Pathfinding
             {
                 if (neighbor.Blocked || closed.Contains(neighbor)) continue;
                 if (avoidSafeZones && neighbor.IsSafeZone) continue;
+                if (avoidSafeZones && Zone.CrossesSafeZone(current.transform.position, neighbor.transform.position, 0.45f)) continue;
 
                 float newCost = costSoFar[current] + current.DistanceTo(neighbor);
 

@@ -13,6 +13,7 @@ public class InterestPoint : MonoBehaviour
 
     private void Awake()
     {
+        GameLayers.SetLayer(gameObject, GameLayers.Interest);
         // Para que los Boids lo puedan percibir con OverlapSphere necesita un collider.
         if (GetComponent<Collider>() == null)
         {

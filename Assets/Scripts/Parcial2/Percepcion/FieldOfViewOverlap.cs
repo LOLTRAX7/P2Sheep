@@ -42,7 +42,7 @@ public class FieldOfViewOverlap : FieldOfViewSensor
 
             _target = candidate;
 
-            if (!InViewAngle() || !HasLineOfSight()) continue;
+            if (!IsVisibleNow(candidate)) continue;
 
             float distance = (candidate.position - transform.position).sqrMagnitude;
 

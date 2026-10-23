@@ -155,7 +155,7 @@ MonoBehaviour:
   _wallThickness: 2
   _setupCamera: 1
   _createHud: 1
-  _runGraphSelfTest: 1
+  _runGraphSelfTest: 0
 --- !u!4 &744080576
 Transform:
   m_ObjectHideFlags: 0

@@ -113,6 +113,26 @@ public class Zone : MonoBehaviour
         return false;
     }
 
+    // También se bloquean segmentos que atraviesan un refugio aunque sus
+    // extremos estén afuera (atajos, aristas y movimiento con inercia).
+    public static bool CrossesSafeZone(Vector3 from, Vector3 to, float radius = 0f)
+    {
+        Vector3 start = new(from.x, 0.5f, from.z);
+        Vector3 end = new(to.x, 0.5f, to.z);
+        Vector3 offset = end - start;
+        float distance = offset.magnitude;
+        foreach (Zone zone in _safeZones)
+        {
+            if (zone == null) continue;
+            UnityEngine.Bounds area = zone.WorldBounds;
+            area.Expand(new Vector3(radius * 2f, 0f, radius * 2f));
+            if (area.Contains(start) || area.Contains(end)) return true;
+            if (distance > 0.001f && area.IntersectRay(new Ray(start, offset / distance), out float hit)
+                && hit <= distance) return true;
+        }
+        return false;
+    }
+
     public static Zone FindNearestSafeZone(Vector3 worldPosition)
     {
         Zone best = null;

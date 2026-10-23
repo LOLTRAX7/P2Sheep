@@ -46,7 +46,7 @@ public class FieldOfViewMultiOverlap : FieldOfViewSensor
 
             _target = candidate;
 
-            if (!InViewAngle() || !HasLineOfSight()) continue;
+            if (!IsVisibleNow(candidate)) continue;
 
             _visibleTargets.Add(candidate);
 

@@ -51,6 +51,7 @@ public class BoidAgent : Agent
     private HunterAgent _threat;
     private float _harvestTimer;
     private Collider _collider;
+    private float _spawnHeight;
 
     public bool IsEliminated { get; private set; }
 
@@ -63,6 +64,8 @@ public class BoidAgent : Agent
 
     private void Awake()
     {
+        _spawnHeight = transform.position.y;
+        GameLayers.SetLayer(gameObject, GameLayers.Boid);
         // Evita que un Rigidbody sin configurar pelee contra el movimiento manual.
         DisablePhysicsInterference();
 
@@ -170,12 +173,12 @@ public class BoidAgent : Agent
         float nearestDist = effectiveRadius;
 
         // Parcial 2: percibe sólo lo que está dentro de su radio de visión (OverlapSphere), no una lista de todos los cazadores.
-        int count = Physics.OverlapSphereNonAlloc(transform.position, effectiveRadius, QueryBuffer);
+        int count = Physics.OverlapSphereNonAlloc(transform.position, effectiveRadius, QueryBuffer, GameLayers.HunterMask);
 
         for (int i = 0; i < count; i++)
         {
             HunterAgent hunter = QueryBuffer[i].GetComponentInParent<HunterAgent>();
-            if (hunter == null) continue;
+            if (hunter == null || hunter.IsDead) continue;
 
             float dist = Vector3.Distance(transform.position, hunter.transform.position);
             if (dist <= nearestDist)
@@ -192,7 +195,7 @@ public class BoidAgent : Agent
     {
         _neighbors.Clear();
 
-        int count = Physics.OverlapSphereNonAlloc(transform.position, neighborRadius, QueryBuffer);
+        int count = Physics.OverlapSphereNonAlloc(transform.position, neighborRadius, QueryBuffer, GameLayers.BoidMask);
 
         for (int i = 0; i < count; i++)
         {
@@ -218,7 +221,7 @@ public class BoidAgent : Agent
         InterestPoint nearest = null;
         float nearestDist = poiVisionRadius;
 
-        int count = Physics.OverlapSphereNonAlloc(transform.position, poiVisionRadius, QueryBuffer);
+        int count = Physics.OverlapSphereNonAlloc(transform.position, poiVisionRadius, QueryBuffer, GameLayers.InterestMask);
 
         for (int i = 0; i < count; i++)
         {
@@ -284,6 +287,7 @@ public class BoidAgent : Agent
     // Llamado por HunterGatherState al completar la recolección
     public void OnGathered(float respawnDelay)
     {
+        if (!IsEliminated || !IsPendingGather) return;
         // Apenas se recolecta, deja de estar "pendiente de recolección"
         // (así el cazador no lo vuelve a detectar como recolectable).
         IsPendingGather = false;
@@ -297,7 +301,11 @@ public class BoidAgent : Agent
         yield return new WaitForSeconds(delay);
 
         if (Bounds.Instance != null)
-            transform.position = Bounds.Instance.GetRandomPointInside();
+        {
+            Vector3 spawn = Bounds.Instance.GetRandomPointInside();
+            spawn.y = _spawnHeight;
+            transform.position = spawn;
+        }
 
         _health.ResetHealth();
         IsEliminated = false;
@@ -385,16 +393,20 @@ public class BoidAgent : Agent
         foreach (var other in _neighbors)
         {
             float dist = Vector3.Distance(other.transform.position, transform.position);
-            if (dist > 0.0001f && dist <= separationRadius)
+            if (dist <= separationRadius)
             {
-                sum += transform.position - other.transform.position;
+                Vector3 away = transform.position - other.transform.position;
+                // Dos agentes exactamente superpuestos también deben separarse.
+                if (dist < 0.0001f)
+                    away = GetInstanceID() < other.GetInstanceID() ? Vector3.left : Vector3.right;
+                sum += away.normalized / Mathf.Max(dist, 0.1f);
                 count++;
             }
         }
 
         if (count == 0) return Vector3.zero;
 
-        return sum / count;
+        return SteeringFromDesired((sum / count).normalized * maxSpeed);
     }
 
     private Vector3 CalculateAlignment()
@@ -417,7 +429,7 @@ public class BoidAgent : Agent
 
         if (count == 0) return Vector3.zero;
 
-        return sum / count;
+        return SteeringFromDesired((sum / count).normalized * maxSpeed);
     }
 
     private Vector3 CalculateCohesion()
@@ -441,7 +453,7 @@ public class BoidAgent : Agent
         if (count == 0) return Vector3.zero;
 
         centroid /= count;
-        return (centroid - transform.position).normalized;
+        return SteeringFromDesired((centroid - transform.position).normalized * maxSpeed);
     }
 
     // ---------- Utilidades de Editor ----------
@@ -465,5 +477,8 @@ public class BoidAgent : Agent
 
         Gizmos.color = new Color(1f, 0.55f, 0f, 0.8f);
         Gizmos.DrawWireSphere(transform.position, hunterVisionRadius);
+
+        Gizmos.color = new Color(0.7f, 1f, 0.25f, 0.4f);
+        Gizmos.DrawWireSphere(transform.position, poiVisionRadius);
     }
 }

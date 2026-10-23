@@ -101,6 +101,12 @@ public class Graph : MonoBehaviour
         return SweepClear(origin, destination, _agentRadius);
     }
 
+    public bool CanTravel(Vector3 from, Vector3 to, bool avoidSafeZones = false)
+    {
+        return (!avoidSafeZones || !Zone.CrossesSafeZone(from, to, _agentRadius))
+            && IsPathClear(from, to);
+    }
+
     // ¿Se pueden unir dos puntos con una conexión del grafo? Se valida con un radio algo más grande.
     public bool IsLinkClear(Vector3 a, Vector3 b)
     {
@@ -117,6 +123,9 @@ public class Graph : MonoBehaviour
 
         Vector3 direction = end - start;
         float distance = direction.magnitude;
+
+        if (Physics.CheckSphere(start, radius, _wallMask, QueryTriggerInteraction.Ignore)
+            || Physics.CheckSphere(end, radius, _wallMask, QueryTriggerInteraction.Ignore)) return false;
 
         if (distance < 0.001f) return true;
 
@@ -166,6 +175,8 @@ public class Graph : MonoBehaviour
             // Primero se descarta por distancia (barato) y recién después se hace el cast (caro).
             if (sqr >= bestSqr) continue;
 
+            if (avoidSafeZones && Zone.CrossesSafeZone(position, node.transform.position, _agentRadius)) continue;
+
             bool visible = strict
                 ? IsLinkClear(position, node.transform.position)
                 : IsPathClear(position, node.transform.position);
@@ -199,15 +210,10 @@ public class Graph : MonoBehaviour
     // más cercana por longitud de camino (no por distancia en línea recta).
     public float GetPathCost(Vector3 from, Vector3 to, bool avoidSafeZones = false)
     {
-        if (IsPathClear(from, to)) return FlatDistance(from, to);
-
         Node start = GetClosestVisibleNode(from, false, avoidSafeZones);
         Node goal = GetClosestVisibleNode(to, true, avoidSafeZones);
 
         if (goal == null) goal = GetClosestVisibleNode(to, false, avoidSafeZones);
-        if (start == null) start = GetClosestNode(from, avoidSafeZones);
-        if (goal == null) goal = GetClosestNode(to, avoidSafeZones);
-
         if (start == null || goal == null) return float.PositiveInfinity;
 
         List<Node> path = Pathfinding.AStar(start, goal, avoidSafeZones);

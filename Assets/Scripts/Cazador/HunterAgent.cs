@@ -24,6 +24,7 @@ public class HunterAgent : Agent
     [SerializeField] private float _moveSpeed = 5.2f;
     [SerializeField] private float _fleeSpeed = 6.2f;
     [SerializeField] private float _turnSpeed = 720f;
+    [SerializeField] private float _maxSteering = 24f;
 
     [Header("Percepción (Boids y lobos)")]
     [Tooltip("Radio en el que el Cazador percibe Boids vivos, Boids eliminados y lobos (con línea de visión).")]
@@ -106,6 +107,7 @@ public class HunterAgent : Agent
     private int _gathers;
     private bool _bodyVisible = true;
     private bool _legacyMode;
+    private bool _captureRequested;
 
     private float _countTimer;
     private int _liveInPerception;
@@ -140,7 +142,9 @@ public class HunterAgent : Agent
 
     public int Gathers => _gathers;
     public bool IsDead => _fsm.CurrentStateID == HunterState.Dead;
+    public bool IsPresent => _bodyVisible && !IsDead && !_captureRequested;
     public bool IsAttackReady => _attackCooldown <= 0f;
+    public float AttackCooldownRemaining => Mathf.Max(0f, _attackCooldown);
     public HunterState CurrentState => _fsm.CurrentStateID;
     public Zone ChosenSafeZone => _chosenSafeZone;
     public bool IsInSafeZone => Zone.IsInsideSafeZone(transform.position);
@@ -151,10 +155,12 @@ public class HunterAgent : Agent
     public int VisibleWolfCount => _wolfSensor != null ? _wolfSensor.VisibleTargets.Count : 0;
 
     // Dispara Flee: el Cazador ve por lo menos un lobo (distancia + línea de visión; sin ángulo).
-    public bool IsThreatened => !IsDead && _wolfSensor != null && _wolfSensor.CanSeeTarget;
+    public bool IsThreatened => IsPresent && _wolfSensor != null && _wolfSensor.CanSeeTarget;
 
     // Mientras ya está dentro de una Zona segura no necesita volver a huir: los lobos no pueden detectarlo.
     public bool ShouldFlee => IsThreatened && !IsInSafeZone;
+
+    public void ConfigureInterestPoint(InterestPoint prefab) => _interestPointPrefab = prefab;
 
     public string DebugTarget => _debugTarget;
     public string DebugAction => _debugAction;
@@ -203,6 +209,7 @@ public class HunterAgent : Agent
         _colorFeedback.SetRenderer(GetComponentInChildren<Renderer>());
 
         _navigator = gameObject.GetOrAddComponent<GraphNavigator>();
+        _navigator.Configure(false, true);
         _wolfSensor = gameObject.GetOrAddComponent<FieldOfViewMultiOverlap>();
         gameObject.GetOrAddComponent<PathVisual>();
     }
@@ -220,6 +227,7 @@ public class HunterAgent : Agent
         // La escena del Parcial 1 tiene un Hunter con waypoints, pero no las zonas ni el grafo del
         // Parcial 2. En ese caso se usa un estado de patrulla compatible para no romper el P1.
         _legacyMode = _huntingZone == null || _initialZone == null || _exitZone == null;
+        _fsm.AddGlobalTransition(HunterState.Dead, () => _captureRequested);
 
         if (_legacyMode)
         {
@@ -303,11 +311,9 @@ public class HunterAgent : Agent
             return;
         }
 
-        direction.Normalize();
-        _velocity = direction * speed;
-        transform.position += _velocity * Time.deltaTime;
+        MoveWithSteering(destination, speed, _maxSteering, 0.6f);
 
-        Quaternion desired = Quaternion.LookRotation(direction, Vector3.up);
+        Quaternion desired = Quaternion.LookRotation(direction.normalized, Vector3.up);
         transform.rotation = Quaternion.RotateTowards(transform.rotation, desired, _turnSpeed * Time.deltaTime);
     }
 
@@ -326,6 +332,9 @@ public class HunterAgent : Agent
         float targetSpeed = target.Velocity.magnitude;
         float prediction = distance / Mathf.Max(speed + targetSpeed, 0.001f);
         Vector3 futurePosition = target.transform.position + target.Velocity * prediction;
+
+        if (_graph != null && !_graph.IsPathClear(transform.position, futurePosition))
+            futurePosition = target.transform.position;
 
         MoveDirect(futurePosition, speed);
     }
@@ -377,7 +386,7 @@ public class HunterAgent : Agent
         float bestScore = float.PositiveInfinity;
         float bestDistance = float.PositiveInfinity;
 
-        int count = Physics.OverlapSphereNonAlloc(transform.position, _visionRadius, QueryBuffer);
+        int count = Physics.OverlapSphereNonAlloc(transform.position, _visionRadius, QueryBuffer, GameLayers.BoidMask);
 
         for (int i = 0; i < count; i++)
         {
@@ -430,13 +439,14 @@ public class HunterAgent : Agent
     private int CountBoids(Func<BoidAgent, bool> matchesGiven)
     {
         int total = 0;
-        int count = Physics.OverlapSphereNonAlloc(transform.position, _visionRadius, QueryBuffer);
+        int count = Physics.OverlapSphereNonAlloc(transform.position, _visionRadius, QueryBuffer, GameLayers.BoidMask);
 
         for (int i = 0; i < count; i++)
         {
             BoidAgent boid = QueryBuffer[i].GetComponentInParent<BoidAgent>();
 
-            if (boid != null && matchesGiven(boid) && FlatDistanceTo(boid.transform.position) <= _visionRadius)
+            if (boid != null && matchesGiven(boid) && FlatDistanceTo(boid.transform.position) <= _visionRadius
+                && HasClearSightTo(boid.transform.position))
                 total++;
         }
 
@@ -503,6 +513,7 @@ public class HunterAgent : Agent
         {
             GameObject pointObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             pointObject.name = "ObjetoDeInteres";
+            pointObject.transform.position = position;
 
             Destroy(pointObject.GetComponent<Collider>());
             pointObject.AddComponent<SphereCollider>().isTrigger = true;
@@ -566,10 +577,11 @@ public class HunterAgent : Agent
 
     public void DieFromWolf()
     {
-        if (IsDead) return;
+        if (IsDead || _captureRequested) return;
 
         FeedbackLog.Add("[Cazador] ¡Alcanzado por un lobo! Pasa a DEAD.", new Color(1f, 0.2f, 0.2f));
-        _fsm.ChangeState(HunterState.Dead);
+        // El lobo informa la captura; la FSM evalúa la transición prioritaria.
+        _captureRequested = true;
     }
 
     public void SetBodyVisible(bool visible)
@@ -616,6 +628,8 @@ public class HunterAgent : Agent
 
     public void RespawnAtInitialZone()
     {
+        _captureRequested = false;
+        _chosenSafeZone = null;
         transform.position = _startPosition;
         transform.rotation = Quaternion.identity;
         ResetGathers();
@@ -628,6 +642,8 @@ public class HunterAgent : Agent
 
     public void FinishExitCycle()
     {
+        _captureRequested = false;
+        _chosenSafeZone = null;
         transform.position = _startPosition;
         transform.rotation = Quaternion.identity;
         ResetGathers();

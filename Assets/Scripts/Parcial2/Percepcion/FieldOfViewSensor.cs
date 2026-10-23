@@ -1,6 +1,9 @@
 using System;
 using UnityEngine;
 
+// Base: UTN-AI-2026-main, Clase 7/FieldOfViewSensor.cs.
+// Adaptaciones P2: filtros de refugio/muerte, visión de 360 grados y revalidación al actuar.
+
 // Sensor de percepción (distancia + ángulo opcional + línea de visión), basado en el Field Of View de la materia.
 // El Cazador lo usa con ángulo 360° (la consigna sólo pide distancia máxima y obstáculos).
 public abstract class FieldOfViewSensor : MonoBehaviour
@@ -52,6 +55,19 @@ public abstract class FieldOfViewSensor : MonoBehaviour
 
         Vector3 dirToTarget = (_target.position - transform.position).normalized;
         return Vector3.Angle(transform.forward, dirToTarget) <= _viewAngle * 0.5f;
+    }
+
+    // Revalida el objetivo al actuar para que una muestra anterior del sensor
+    // no revele posiciones detrás de una pared o después de salir del FoV.
+    public bool IsVisibleNow(Transform candidate)
+    {
+        if (!IsAllowed(candidate)) return false;
+        if ((candidate.position - transform.position).sqrMagnitude > _viewRadius * _viewRadius) return false;
+        Transform previous = _target;
+        _target = candidate;
+        bool visible = InViewAngle() && HasLineOfSight();
+        _target = previous;
+        return visible;
     }
 
     protected bool HasLineOfSight()

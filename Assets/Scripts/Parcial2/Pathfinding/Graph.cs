@@ -24,7 +24,7 @@ public class Graph : MonoBehaviour
 
     [Header("Debug")]
     [Tooltip("Dibuja las aristas con LineRenderer para verlas en la pestaña Game.")]
-    [SerializeField] private bool _drawEdgesInGame = true;
+    [SerializeField] private bool _drawEdgesInGame = false;
     [SerializeField] private Color _edgeColor = new(1f, 0.45f, 0.8f, 0.65f);
 
     private readonly List<Node> _nodes = new();

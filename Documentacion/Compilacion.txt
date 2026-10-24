@@ -1,1 +1,0 @@
-[Revision] Compilación Windows: Succeeded, errores: 0, advertencias: 0

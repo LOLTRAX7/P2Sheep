@@ -40,9 +40,8 @@ public class BoidAgent : Agent
     [SerializeField] private Color harvestColor = new Color(0.3f, 0.6f, 1f);
     [SerializeField] private Color eliminatedColor = Color.gray;
 
-    // Parcial 2: ya no hay una lista static con todos los Boids. Cada Boid percibe lo que tiene cerca con
-    // Physics.OverlapSphere (Clase 7), así que no conoce a todos los elementos de la escena.
-    private static readonly Collider[] QueryBuffer = new Collider[128];
+    // Cada Boid guarda sólo los resultados de su consulta de percepción.
+    private readonly Collider[] _queryBuffer = new Collider[128];
 
     private Health _health;
     private ColorFeedback _colorFeedback;
@@ -173,11 +172,11 @@ public class BoidAgent : Agent
         float nearestDist = effectiveRadius;
 
         // Parcial 2: percibe sólo lo que está dentro de su radio de visión (OverlapSphere), no una lista de todos los cazadores.
-        int count = Physics.OverlapSphereNonAlloc(transform.position, effectiveRadius, QueryBuffer, GameLayers.HunterMask);
+        int count = Physics.OverlapSphereNonAlloc(transform.position, effectiveRadius, _queryBuffer, GameLayers.HunterMask);
 
         for (int i = 0; i < count; i++)
         {
-            HunterAgent hunter = QueryBuffer[i].GetComponentInParent<HunterAgent>();
+            HunterAgent hunter = _queryBuffer[i].GetComponentInParent<HunterAgent>();
             if (hunter == null || hunter.IsDead) continue;
 
             float dist = Vector3.Distance(transform.position, hunter.transform.position);
@@ -195,11 +194,11 @@ public class BoidAgent : Agent
     {
         _neighbors.Clear();
 
-        int count = Physics.OverlapSphereNonAlloc(transform.position, neighborRadius, QueryBuffer, GameLayers.BoidMask);
+        int count = Physics.OverlapSphereNonAlloc(transform.position, neighborRadius, _queryBuffer, GameLayers.BoidMask);
 
         for (int i = 0; i < count; i++)
         {
-            BoidAgent other = QueryBuffer[i].GetComponentInParent<BoidAgent>();
+            BoidAgent other = _queryBuffer[i].GetComponentInParent<BoidAgent>();
 
             if (other != null && other != this && !_neighbors.Contains(other))
                 _neighbors.Add(other);
@@ -221,14 +220,14 @@ public class BoidAgent : Agent
         InterestPoint nearest = null;
         float nearestDist = poiVisionRadius;
 
-        int count = Physics.OverlapSphereNonAlloc(transform.position, poiVisionRadius, QueryBuffer, GameLayers.InterestMask);
+        int count = Physics.OverlapSphereNonAlloc(transform.position, poiVisionRadius, _queryBuffer, GameLayers.InterestMask);
 
         for (int i = 0; i < count; i++)
         {
-            InterestPoint poi = QueryBuffer[i].GetComponentInParent<InterestPoint>();
+            InterestPoint poi = _queryBuffer[i].GetComponentInParent<InterestPoint>();
             if (poi == null) continue;
 
-            // Parcial 2: los Boids viven en el lobby; ignoran objetos de interés que quedaron fuera de su área.
+            // Parcial 2: los Boids permanecen en el Coto; ignoran objetos de interés que quedaron fuera de su área.
             if (Bounds.Instance != null && !Bounds.Instance.Contains(poi.transform.position)) continue;
 
             float dist = Vector3.Distance(transform.position, poi.transform.position);

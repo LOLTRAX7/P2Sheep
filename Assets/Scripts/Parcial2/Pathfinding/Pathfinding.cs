@@ -1,19 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Base: ejemplos Pathfinding + LoS + FoV y UTN Clase 11 (AStar).
-// Se conserva frontier/cameFrom/costSoFar; se usan distancias reales,
-// heurística euclidiana fija y exclusión de refugios. Sin parámetro visited.
-
-// A* sobre el grafo de nodos del proyecto.
-//
-// Se mantiene la estructura del ejemplo de la materia (frontier, cameFrom, costSoFar) y se agrega:
-//   - costo real por distancia entre nodos (no un costo fijo de celda);
-//   - un HashSet local de nodos cerrados, para no expandir dos veces el mismo nodo;
-//   - la opción avoidSafeZones, que descarta los nodos de las Zonas seguras (la usan los lobos).
-//
-// La heurística es siempre la distancia euclidiana (admisible): no se usa un enum de métodos de heurística
-// ni se guarda "visited" dentro del Node, porque una búsqueda no debe dejar estado en el grafo compartido.
+// Adaptado de A* de clase: costo por distancia y heurística euclidiana.
+// El filtro de refugios permite compartir el grafo con los lobos.
 public static class Pathfinding
 {
     // Devuelve los nodos desde startingNode hasta endNode (ambos incluidos), o una lista vacía si no hay camino.

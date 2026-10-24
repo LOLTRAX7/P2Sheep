@@ -1,15 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Genera el escenario del Parcial 2 al darle Play.
-//
-// No contiene IA: sólo construye el mapa del Ejemplo 1 (anillo), las zonas, el grafo compartido,
-// el área de los Boids, el Cazador, los Boids y los lobos. Así la escena que se entrega es chica y
-// todo el nivel se arma de forma reproducible.
-//
-// Se ejecuta antes que el resto de los scripts ([DefaultExecutionOrder]) para que:
-//   - las Zonas ya existan cuando el Cazador y los lobos hacen Start;
-//   - el grafo ya tenga sus conexiones antes de que los agentes empiecen a navegar.
+// Construye el nivel antes de que los agentes comiencen a actualizarse.
 [DefaultExecutionOrder(-500)]
 public class LevelBuilder : MonoBehaviour
 {
@@ -25,7 +17,6 @@ public class LevelBuilder : MonoBehaviour
     [Header("Escena")]
     [SerializeField] private bool _setupCamera = true;
     [SerializeField] private bool _createHud = true;
-    [SerializeField] private bool _runGraphSelfTest = false;
 
     [Header("Prefabs (opcional)")]
     [Tooltip("Si se asignan, LevelBuilder los instancia en lugar de crear primitivas por código. Si no, se usa el comportamiento actual.")]
@@ -84,27 +75,36 @@ public class LevelBuilder : MonoBehaviour
 
         if (_createHud) CreateHud();
 
-        if (_runGraphSelfTest)
-        {
-            GameObject selfTest = new("AutoTest_Grafo");
-            GraphSelfTest test = selfTest.AddComponent<GraphSelfTest>();
-            test.Configure(true);
-        }
-
-        FeedbackLog.Add("Nivel generado: 5 zonas, 5 lobos y " + _boidCount + " Boids.", new Color(0.4f, 1f, 0.5f));
+        FeedbackLog.Add("Nivel generado: " + LevelData.WolfRoutes.Length + " lobos y " + _boidCount + " Boids.", new Color(0.4f, 1f, 0.5f));
     }
 
     // ---------- Mapa, zonas y paredes ----------
 
     private void BuildFloorAndZones()
     {
-        // Piso base de todo el mapa.
-        GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        floor.name = "Piso";
-        floor.transform.SetParent(_root.transform, false);
-        floor.transform.position = new Vector3(0f, -0.1f, 0f);
-        floor.transform.localScale = new Vector3(LevelData.Cols * LevelData.CellSize, 0.2f, LevelData.Rows * LevelData.CellSize);
-        floor.GetComponent<Renderer>().sharedMaterial = MaterialForUnlit(new Color(0.12f, 0.12f, 0.14f));
+        Transform floors = new GameObject("Pisos").transform;
+        floors.SetParent(_root.transform, false);
+        Material floorMaterial = MaterialForLit(new Color(0.82f, 0.81f, 0.76f));
+
+        // Cada tramo horizontal usa una pieza, en lugar de una por celda.
+        for (int row = 0; row < LevelData.Rows; row++)
+        {
+            int col = 0;
+            while (col < LevelData.Cols)
+            {
+                if (LevelData.IsWall(col, row)) { col++; continue; }
+                int first = col;
+                while (col < LevelData.Cols && !LevelData.IsWall(col, row)) col++;
+                GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                floor.name = "Piso_" + row + "_" + first;
+                floor.transform.SetParent(floors, false);
+                Vector3 position = LevelData.ToWorld((first + col - 1) * 0.5f, row);
+                position.y = -0.1f;
+                floor.transform.position = position;
+                floor.transform.localScale = new Vector3((col - first) * LevelData.CellSize, 0.2f, LevelData.CellSize);
+                floor.GetComponent<Renderer>().sharedMaterial = floorMaterial;
+            }
+        }
 
         GameObject zonesRoot = new("Zonas");
         zonesRoot.transform.SetParent(_root.transform, false);
@@ -143,7 +143,10 @@ public class LevelBuilder : MonoBehaviour
             zoneFloor.transform.SetParent(zoneObject.transform, false);
             zoneFloor.transform.position = new Vector3(center.x, 0.025f, center.z);
             zoneFloor.transform.localScale = new Vector3(size.x, 0.05f, size.y);
-            zoneFloor.GetComponent<Renderer>().sharedMaterial = MaterialForUnlit(Zone.ColorFor(def.Type) * 0.55f + Color.black * 0.45f);
+            Color floorColor = def.Type == ZoneType.Patrol
+                ? new Color(0.82f, 0.81f, 0.76f)
+                : Color.Lerp(Color.white, Zone.ColorFor(def.Type), 0.7f);
+            zoneFloor.GetComponent<Renderer>().sharedMaterial = MaterialForLit(floorColor);
             Destroy(zoneFloor.GetComponent<Collider>());
 
             CreateZoneBorder(zone, size, Zone.ColorFor(def.Type));
@@ -159,7 +162,7 @@ public class LevelBuilder : MonoBehaviour
         line.useWorldSpace = true;
         line.loop = true;
         line.positionCount = 4;
-        line.widthMultiplier = 0.18f;
+        line.widthMultiplier = 0.06f;
         line.sharedMaterial = FeedbackMaterials.CreateUnlit(color);
         line.startColor = color;
         line.endColor = color;
@@ -269,7 +272,7 @@ public class LevelBuilder : MonoBehaviour
         if (_initialZone != null && _initialZone.Contains(position)) return Zone.ColorFor(ZoneType.Initial);
         if (_exitZone != null && _exitZone.Contains(position)) return Zone.ColorFor(ZoneType.Exit);
 
-        return new Color(1f, 0.35f, 0.75f);
+        return new Color(0.25f, 0.28f, 0.34f);
     }
 
     // ---------- Área de los Boids y agentes ----------
@@ -306,6 +309,7 @@ public class LevelBuilder : MonoBehaviour
         }
 
         _hunter = hunterObject.GetComponent<HunterAgent>();
+        hunterObject.transform.SetParent(_root.transform, true);
         if (_hunter == null) _hunter = hunterObject.AddComponent<HunterAgent>();
 
         _hunter.Configure(
@@ -433,8 +437,8 @@ public class LevelBuilder : MonoBehaviour
         }
 
         camera.orthographic = true;
-        camera.transform.position = new Vector3(0f, 70f, 0f);
-        camera.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+        camera.transform.position = new Vector3(0f, 60f, -40f);
+        camera.transform.rotation = Quaternion.Euler(56f, 0f, 0f);
         camera.clearFlags = CameraClearFlags.SolidColor;
         camera.backgroundColor = new Color(0.05f, 0.06f, 0.09f);
         camera.nearClipPlane = 0.1f;
@@ -443,7 +447,7 @@ public class LevelBuilder : MonoBehaviour
         float aspect = camera.aspect > 0.01f ? camera.aspect : 16f / 9f;
         float mapWidth = LevelData.Cols * LevelData.CellSize;
         float mapDepth = LevelData.Rows * LevelData.CellSize;
-        camera.orthographicSize = Mathf.Max(mapDepth * 0.5f, mapWidth * 0.5f / aspect) + 3f;
+        camera.orthographicSize = Mathf.Max(mapDepth * 0.5f * Mathf.Sin(56f * Mathf.Deg2Rad), mapWidth * 0.5f / aspect) + 3f;
 
         if (FindFirstObjectByType<Light>() == null)
         {
@@ -458,6 +462,7 @@ public class LevelBuilder : MonoBehaviour
     private void CreateHud()
     {
         GameObject hud = new("HUD");
+        hud.transform.SetParent(_root.transform, false);
         hud.AddComponent<FeedbackLogHUD>();
         hud.AddComponent<HunterFeedback>();
         hud.AddComponent<ZoneLegend>();

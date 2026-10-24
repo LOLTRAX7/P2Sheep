@@ -286,8 +286,8 @@ MonoBehaviour:
   perceptionRadius: 8
   perceptionLossMargin: 3
   <TBA>k__BackingField: 2
-  <RangeAttackRadius>k__BackingField: 1.5
-  <MeleeAttackRadius>k__BackingField: 4
+  <RangeAttackRadius>k__BackingField: 7
+  <MeleeAttackRadius>k__BackingField: 2
   meleeDamage: 50
   rangedDamage: 20
   attackPreparationTime: 1

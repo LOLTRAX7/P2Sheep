@@ -20,38 +20,38 @@ public static class LevelData
     public static readonly string[] Map =
     {
         "##############################################",
-        "##################..........##################",
-        "##################..........##################",
-        "##################..........##################",
-        "##################..........##################",
-        "######################..######################",
         "######..................................######",
         "######..................................######",
         "######..................................######",
+        "######...#####..##..######..#########...######",
+        "######...#####..#............########...######",
+        "######...#####..#............########...######",
+        "######...#####..#............##.....#...######",
+        "######...#####..#............##.....#...######",
+        "######...#####..#............##.....#...######",
+        "######...#####..###############.....#...######",
+        "######...#####..###############.....#...######",
+        "######...#####..################..###...######",
+        "######...#####..#............###..###...######",
+        "######...#####..#............###..###...######",
+        "#....#...#####..#............###..###...#....#",
+        "#............................................#",
+        "#............................................#",
+        "#............................................#",
+        "#....#...###..###............########...#....#",
+        "#....#...###..###............########...#....#",
+        "######...###..#######################...######",
+        "######...#.....######################...######",
+        "######...#.....######################...######",
+        "######...#.....##............########...######",
+        "######...#.....##............########...######",
+        "######...#.....##............########...######",
+        "######...########............########...######",
+        "######...########............########...######",
+        "######...#########..######..#########...######",
         "######..................................######",
         "######..................................######",
-        "######.......#########..#########.......######",
-        "######.......#########..######..#.......######",
-        "######.......................#..........######",
-        "######.......................#..........######",
-        "#....#.......####............#..#.......#....#",
-        "#....#.......#..#............####.......#....#",
-        "#............#..#............................#",
-        "#...............#............................#",
-        "#....#..........#............####.......#....#",
-        "#....#.......#..#............####.......#....#",
-        "######.......#########..#########.......######",
-        "######.......#########..#########.......######",
         "######..................................######",
-        "######..................................######",
-        "######..................................######",
-        "######..................................######",
-        "######..................................######",
-        "######################..######################",
-        "##################..........##################",
-        "##################..........##################",
-        "##################..........##################",
-        "##################..........##################",
         "##############################################",
     };
 
@@ -117,61 +117,54 @@ public static class LevelData
     {
         new("Zona_Inicial", ZoneType.Initial, 1, 4, 15, 20),
         new("Coto_De_Caza", ZoneType.Hunting, 17, 28, 13, 20),
-        new("Zona_Segura_A", ZoneType.Safe, 14, 15, 16, 20),
-        new("Zona_Segura_B", ZoneType.Safe, 30, 31, 12, 15),
+        new("Zona_Segura_A", ZoneType.Safe, 10, 14, 22, 26),
+        new("Zona_Segura_B", ZoneType.Safe, 31, 35, 7, 11),
         new("Salida", ZoneType.Exit, 41, 44, 15, 20),
         // Habitaciones de patrulla: se pintan distinto para que el recorrido de los lobos se entienda.
-        new("Habitacion_Norte", ZoneType.Patrol, 18, 27, 1, 4),
-        new("Habitacion_Sur", ZoneType.Patrol, 18, 27, 29, 32),
+        new("Habitacion_Norte", ZoneType.Patrol, 17, 28, 5, 9),
+        new("Habitacion_Sur", ZoneType.Patrol, 17, 28, 24, 28),
     };
 
     // Nodos del grafo. Están ubicados en el centro de pasillos, habitaciones y puertas.
     // Las conexiones las genera Graph con SphereCast, así que ninguna arista atraviesa paredes.
     public static readonly NodeDef[] Nodes =
     {
-        // Zona inicial y Salida (zonas aisladas con una sola puerta).
         new("INIT_1", 2.5f, 18f),
-        new("INIT_DOOR", 5f, 18f),
+        new("INIT_DOOR", 5f, 17f),
         new("EXIT_1", 42.5f, 18f),
-        new("EXIT_DOOR", 40f, 18f),
-
-        // Anillo exterior: oeste.
-        new("W_S", 8f, 22f),
-        new("W_M", 8f, 18f),
-        new("W_N", 8f, 12f),
-
-        // Anillo exterior: norte.
-        new("N_W1", 8f, 8f),
-        new("N_W2", 12f, 8f),
-        new("N_W3", 17f, 8f),
-        new("N_TOP", 22.5f, 8f),
-        new("N_E1", 27f, 8f),
-        new("N_E2", 32f, 8f),
-        new("N_E3", 37f, 8f),
-
-        // Anillo exterior: este.
-        new("E_N", 37f, 12f),
-        new("E_M", 37f, 18f),
-        new("E_S", 37f, 22f),
-        new("E_SE", 37f, 25f),
-
-        // Anillo exterior: sur.
-        new("S_E1", 32f, 25f),
-        new("S_E2", 27f, 25f),
-        new("S_BOT", 22.5f, 25f),
-        new("S_W1", 17f, 25f),
-        new("S_W2", 12f, 25f),
-        new("S_W3", 8f, 25f),
-
-        // Habitaciones de patrulla (norte y sur).
-        new("TOP_1", 22.5f, 3f),
-        new("TOP_2", 19f, 3f),
-        new("TOP_3", 26f, 3f),
-        new("BOT_1", 22.5f, 31f),
-        new("BOT_2", 19f, 31f),
-        new("BOT_3", 26f, 31f),
-
-        // Coto de caza: grilla interna para que el Cazador y los lobos puedan recorrerlo con A*.
+        new("EXIT_DOOR", 40f, 17f),
+        new("W_S", 7f, 26f),
+        new("W_M", 7f, 17f),
+        new("W_N", 7f, 8f),
+        new("N_W1", 7f, 2f),
+        new("N_W2", 12f, 2f),
+        new("N_W3", 17f, 2f),
+        new("N_TOP", 22.5f, 2f),
+        new("N_E1", 27f, 2f),
+        new("N_E2", 32f, 2f),
+        new("N_E3", 38f, 2f),
+        new("E_N", 38f, 8f),
+        new("E_M", 38f, 17f),
+        new("E_S", 38f, 26f),
+        new("E_SE", 38f, 31f),
+        new("S_E1", 32f, 31f),
+        new("S_E2", 27f, 31f),
+        new("S_BOT", 22.5f, 31f),
+        new("S_W1", 17f, 31f),
+        new("S_W2", 12f, 31f),
+        new("S_W3", 7f, 31f),
+        new("TOP_1", 22.5f, 7f),
+        new("TOP_2", 18.5f, 7f),
+        new("TOP_3", 26.5f, 7f),
+        new("BOT_1", 22.5f, 26f),
+        new("BOT_2", 18.5f, 26f),
+        new("BOT_3", 26.5f, 26f),
+        new("NROOM_W", 18.5f, 3.5f),
+        new("NROOM_E", 26.5f, 3.5f),
+        new("SROOM_W", 18.5f, 29.5f),
+        new("SROOM_E", 26.5f, 29.5f),
+        new("INNER_NW", 14.5f, 2.5f),
+        new("INNER_W", 14.5f, 10f),
         new("HUNT_NW", 19f, 15f),
         new("HUNT_N", 22.5f, 15f),
         new("HUNT_NE", 27f, 15f),
@@ -181,30 +174,25 @@ public static class LevelData
         new("HUNT_SW", 19f, 19f),
         new("HUNT_S", 22.5f, 19f),
         new("HUNT_SE", 27f, 19f),
-
-        // Nodos de las cuatro puertas del Coto.
-        new("HUNT_N_DOOR", 22.5f, 11.5f),
-        new("HUNT_S_DOOR", 22.5f, 21.5f),
-        new("HUNT_W_DOOR", 14.5f, 13.5f),
-        new("HUNT_E_DOOR", 30.5f, 18f),
-
-        // Zonas seguras (callejones sin salida). Los lobos tienen prohibido usar estos nodos.
-        new("SAFE_A", 14.5f, 18.5f),
-        new("SAFE_A_OUT", 10f, 18.5f),
-        new("SAFE_B", 30.5f, 13.5f),
-        new("SAFE_B_OUT", 35f, 13.5f),
+        new("HUNT_W_DOOR", 15f, 17f),
+        new("HUNT_E_DOOR", 30.5f, 17f),
+        new("SAFE_A_TURN", 12.5f, 17.5f),
+        new("SAFE_A", 12.5f, 24f),
+        new("SAFE_A_OUT", 12.5f, 19f),
+        new("SAFE_A_DOOR", 12.5f, 21f),
+        new("SAFE_B_TURN", 32.5f, 17f),
+        new("SAFE_B", 33f, 9f),
+        new("SAFE_B_OUT", 32.5f, 14f),
+        new("SAFE_B_DOOR", 32.5f, 12f),
     };
 
-    // Rutas de patrulla de los lobos. Las zonas seguras quedan lejos de los waypoints:
-    // los lobos patrullan el anillo norte/sur y no acampan en las salidas de las Zonas seguras.
-    // Tampoco usan nodos de Zonas seguras, de la Zona inicial ni de la Salida.
+    // Patrullas oeste, norte, este y sur. Los refugios quedan fuera de las rutas.
     public static readonly RouteDef[] WolfRoutes =
     {
-        new("Lobo_1", new[] { "TOP_1", "TOP_2", "N_W3", "N_W2", "N_W1", "N_TOP" }, true),
-        new("Lobo_2", new[] { "TOP_3", "N_TOP", "N_E1", "N_E2", "N_E3" }, true),
-        new("Lobo_3", new[] { "BOT_3", "S_BOT", "S_E2", "S_E1", "E_SE" }, true),
-        new("Lobo_4", new[] { "BOT_2", "BOT_1", "S_BOT", "S_W1", "S_W2", "S_W3" }, true),
-        new("Lobo_5", new[] { "N_W2", "N_W3", "TOP_1", "TOP_3", "N_E1", "N_E2" }, false),
+        new("Lobo_1", new[] { "N_W1", "W_N", "W_M", "W_S", "S_W3" }, true),
+        new("Lobo_2", new[] { "N_W3", "N_TOP", "N_E1", "NROOM_E", "TOP_3", "TOP_1", "TOP_2", "NROOM_W" }, false),
+        new("Lobo_3", new[] { "N_E3", "E_N", "E_M", "E_S", "E_SE" }, true),
+        new("Lobo_4", new[] { "S_W1", "S_BOT", "S_E2", "SROOM_E", "BOT_3", "BOT_1", "BOT_2", "SROOM_W" }, false),
     };
 
     public const string HunterStartNode = "INIT_1";

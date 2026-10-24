@@ -8,7 +8,7 @@ public class FieldOfViewMultiOverlap : FieldOfViewSensor
     [Header("Overlap")]
     [SerializeField] private float _checkInterval = 0.2f;
 
-    private static readonly Collider[] Buffer = new Collider[128];
+    private readonly Collider[] _buffer = new Collider[128];
 
     private float _timer;
     private readonly List<Transform> _visibleTargets = new();
@@ -28,7 +28,7 @@ public class FieldOfViewMultiOverlap : FieldOfViewSensor
 
     private void CheckVisibility()
     {
-        int count = Physics.OverlapSphereNonAlloc(transform.position, _viewRadius, Buffer, _targetMask);
+        int count = Physics.OverlapSphereNonAlloc(transform.position, _viewRadius, _buffer, _targetMask);
 
         _visibleTargets.Clear();
 
@@ -37,7 +37,7 @@ public class FieldOfViewMultiOverlap : FieldOfViewSensor
 
         for (int i = 0; i < count; i++)
         {
-            Collider hit = Buffer[i];
+            Collider hit = _buffer[i];
 
             if (hit == null || hit.transform.IsChildOf(transform)) continue;
 

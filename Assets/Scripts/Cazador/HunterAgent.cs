@@ -3,15 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-// NPC Cazador del Parcial 2.
-//
-// Toda su conducta se organiza con una FSM (FiniteStateMachine / State):
-//   Search -> Attack -> Gather -> Flee -> Exit -> Dead.
-// Las transiciones las decide cada estado a partir de sus propias condiciones; no hay un controlador externo
-// que le diga qué estado ejecutar. La prioridad es: Dead > Flee > Exit > Gather > Attack > Search.
-//
-// Navegación: A* sobre el grafo compartido (GraphNavigator). Sólo el tramo final hacia un Boid que está en
-// línea de visión directa usa steering (Pursuit / Seek / Arrive), como pide la consigna.
+// Cazador: la FSM decide el comportamiento y el navegador sigue el grafo.
 [RequireComponent(typeof(Collider))]
 public class HunterAgent : Agent
 {
@@ -84,7 +76,7 @@ public class HunterAgent : Agent
     [SerializeField] private Color _deadColor = new(0.35f, 0.35f, 0.35f);
 
     // Buffer para no asignar un array nuevo en cada consulta de física.
-    private static readonly Collider[] QueryBuffer = new Collider[128];
+    private readonly Collider[] _queryBuffer = new Collider[128];
 
     private readonly FiniteStateMachine<HunterState> _fsm = new();
     private readonly List<Zone> _safeZones = new();
@@ -386,11 +378,11 @@ public class HunterAgent : Agent
         float bestScore = float.PositiveInfinity;
         float bestDistance = float.PositiveInfinity;
 
-        int count = Physics.OverlapSphereNonAlloc(transform.position, _visionRadius, QueryBuffer, GameLayers.BoidMask);
+        int count = Physics.OverlapSphereNonAlloc(transform.position, _visionRadius, _queryBuffer, GameLayers.BoidMask);
 
         for (int i = 0; i < count; i++)
         {
-            BoidAgent boid = QueryBuffer[i].GetComponentInParent<BoidAgent>();
+            BoidAgent boid = _queryBuffer[i].GetComponentInParent<BoidAgent>();
 
             if (boid == null || !matchesGiven(boid)) continue;
 
@@ -439,11 +431,11 @@ public class HunterAgent : Agent
     private int CountBoids(Func<BoidAgent, bool> matchesGiven)
     {
         int total = 0;
-        int count = Physics.OverlapSphereNonAlloc(transform.position, _visionRadius, QueryBuffer, GameLayers.BoidMask);
+        int count = Physics.OverlapSphereNonAlloc(transform.position, _visionRadius, _queryBuffer, GameLayers.BoidMask);
 
         for (int i = 0; i < count; i++)
         {
-            BoidAgent boid = QueryBuffer[i].GetComponentInParent<BoidAgent>();
+            BoidAgent boid = _queryBuffer[i].GetComponentInParent<BoidAgent>();
 
             if (boid != null && matchesGiven(boid) && FlatDistanceTo(boid.transform.position) <= _visionRadius
                 && HasClearSightTo(boid.transform.position))
